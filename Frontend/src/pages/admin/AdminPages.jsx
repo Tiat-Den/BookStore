@@ -3,6 +3,50 @@ import { Link } from 'react-router-dom';
 import { BookOpen, FolderTree, ShoppingBag, Plus, Trash2, Edit, Check, X, Shield, ArrowUpRight, Users, TrendingUp, Award, BarChart3 } from 'lucide-react';
 import { bookService, categoryService, orderService, reportService } from '../../services/catalogAndOrderServices';
 import { LoadingSpinner } from '../../components/UIComponents';
+import { useAuth } from '../../context/AuthContext';
+
+export const ManagementHeader = ({ title, subtitle, activeTab, actionButton }) => {
+  const { isAdmin } = useAuth();
+  const dashboardLink = isAdmin ? '/admin' : '/employee';
+  const portalBadge = isAdmin ? 'ADMIN PORTAL' : 'EMPLOYEE WORKSPACE';
+  const portalBg = isAdmin ? '#dbeafe' : '#dcfce7';
+  const portalColor = isAdmin ? '#1d4ed8' : '#166534';
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '11px', background: portalBg, color: portalColor, padding: '3px 8px', borderRadius: '4px', fontWeight: '800' }}>
+            {portalBadge}
+          </span>
+        </div>
+        <h1 style={{ fontSize: '26px', fontWeight: '800', marginTop: '4px' }}>{title}</h1>
+        {subtitle && <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{subtitle}</p>}
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <Link to={dashboardLink} className={`btn btn-sm ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
+          Dashboard
+        </Link>
+        <Link to="/admin/books" className={`btn btn-sm ${activeTab === 'books' ? 'btn-primary' : 'btn-outline'}`}>
+          Quản lý Sách
+        </Link>
+        <Link to="/admin/orders" className={`btn btn-sm ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline'}`}>
+          Quản lý Đơn Hàng
+        </Link>
+        <Link to="/admin/coupons" className={`btn btn-sm ${activeTab === 'coupons' ? 'btn-primary' : 'btn-outline'}`}>
+          Mã Khuyến Mãi
+        </Link>
+        {isAdmin && (
+          <Link to="/admin/users" className={`btn btn-sm ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`}>
+            Quản lý Tài Khoản
+          </Link>
+        )}
+        {actionButton}
+      </div>
+    </div>
+  );
+};
 
 export const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -49,24 +93,21 @@ export const AdminDashboard = () => {
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val || 0);
 
-  const maxRevenue = Math.max(...(stats.revenueByMonth?.map(m => m.revenue) || [1]), 1);
+  const revenueByMonth = stats?.revenueByMonth || [];
+  const orderStatusCounts = stats?.orderStatusCounts || [];
+  const topSellingBooks = stats?.topSellingBooks || [];
+  const recentOrders = stats?.recentOrders || [];
+  const maxRevenue = Math.max(...(revenueByMonth.map(m => m.revenue) || [1]), 1);
 
   if (loading) return <LoadingSpinner text="Đang tải dữ liệu báo cáo kinh doanh..." />;
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '800' }}>Hệ Thống Quản Trị BookStore</h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Báo cáo doanh thu & giám sát vận hành thương mại điện tử</p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Link to="/admin/books" className="btn btn-outline btn-sm">Quản lý Sách</Link>
-          <Link to="/admin/orders" className="btn btn-primary btn-sm">Quản lý Đơn Hàng</Link>
-          <Link to="/admin/coupons" className="btn btn-outline btn-sm">Quản lý Khuyến Mãi</Link>
-        </div>
-      </div>
+      <ManagementHeader
+        title="Hệ Thống Quản Trị BookStore"
+        subtitle="Báo cáo doanh thu & giám sát vận hành thương mại điện tử"
+        activeTab="dashboard"
+      />
 
       {/* KPI Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '20px', marginBottom: '36px' }}>
@@ -119,9 +160,10 @@ export const AdminDashboard = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', height: '180px', paddingTop: '20px' }}>
-            {stats.revenueByMonth && stats.revenueByMonth.length > 0 ? (
-              stats.revenueByMonth.map((m, idx) => {
+            {revenueByMonth && revenueByMonth.length > 0 ? (
+              revenueByMonth.map((m, idx) => {
                 const heightPercent = maxRevenue > 0 ? Math.max((m.revenue / maxRevenue) * 100, 8) : 8;
+                const monthLabel = m.month || m.Month || `T${idx + 1}`;
                 return (
                   <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
                     <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '4px' }}>
@@ -137,9 +179,9 @@ export const AdminDashboard = () => {
                         transition: 'height 0.4s ease',
                         opacity: m.revenue > 0 ? 0.9 : 0.3
                       }}
-                      title={`${m.Month}: ${formatPrice(m.revenue)} (${m.orderCount} đơn)`}
+                      title={`${monthLabel}: ${formatPrice(m.revenue)} (${m.orderCount} đơn)`}
                     />
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>{m.Month}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>{monthLabel}</div>
                   </div>
                 );
               })
@@ -153,8 +195,8 @@ export const AdminDashboard = () => {
         <div className="card" style={{ padding: '24px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Phân Bố Trạng Thái Đơn Hàng</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {stats.orderStatusCounts && stats.orderStatusCounts.length > 0 ? (
-              stats.orderStatusCounts.map((sc) => (
+            {orderStatusCounts && orderStatusCounts.length > 0 ? (
+              orderStatusCounts.map((sc) => (
                 <div key={sc.status} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span className="badge badge-primary">{sc.status}</span>
@@ -176,7 +218,7 @@ export const AdminDashboard = () => {
           <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Top Sách Bán Chạy Nhất</h3>
         </div>
 
-        {stats.topSellingBooks && stats.topSellingBooks.length > 0 ? (
+        {topSellingBooks && topSellingBooks.length > 0 ? (
           <div className="table-responsive">
             <table className="table">
               <thead>
@@ -187,7 +229,7 @@ export const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {stats.topSellingBooks.map((book) => (
+                {topSellingBooks.map((book) => (
                   <tr key={book.bookId}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -229,22 +271,30 @@ export const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((o) => (
-                <tr key={o.id}>
-                  <td><strong>{o.orderCode}</strong></td>
-                  <td>{o.customerName}</td>
-                  <td><strong>{formatPrice(o.totalAmount)}</strong></td>
-                  <td>
-                    <span className={`badge ${o.paymentStatus === 'PAID' ? 'badge-success' : 'badge-neutral'}`}>
-                      {o.paymentStatus}
-                    </span>
+              {recentOrders.length > 0 ? (
+                recentOrders.map((o) => (
+                  <tr key={o.id}>
+                    <td><strong>{o.orderCode}</strong></td>
+                    <td>{o.customerName || 'Khách hàng'}</td>
+                    <td><strong>{formatPrice(o.totalAmount)}</strong></td>
+                    <td>
+                      <span className={`badge ${o.paymentStatus === 'PAID' ? 'badge-success' : 'badge-neutral'}`}>
+                        {o.paymentStatus}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="badge badge-primary">{o.orderStatus}</span>
+                    </td>
+                    <td>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                    Chưa có đơn hàng nào gần đây
                   </td>
-                  <td>
-                    <span className="badge badge-primary">{o.orderStatus}</span>
-                  </td>
-                  <td>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -309,16 +359,16 @@ export const AdminBooks = () => {
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '800' }}>Quản Lý Kho Sách</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Danh sách toàn bộ các đầu sách trong hệ thống</p>
-        </div>
-
-        <button onClick={() => setShowModal(true)} className="btn btn-primary">
-          <Plus size={18} /> Thêm Sách Mới
-        </button>
-      </div>
+      <ManagementHeader
+        title="Quản Lý Kho Sách"
+        subtitle="Danh sách toàn bộ các đầu sách trong hệ thống"
+        activeTab="books"
+        actionButton={
+          <button onClick={() => setShowModal(true)} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Plus size={16} /> Thêm Sách Mới
+          </button>
+        }
+      />
 
       {loading ? (
         <LoadingSpinner />
@@ -514,8 +564,11 @@ export const AdminOrders = () => {
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
-      <h1 style={{ fontSize: '26px', fontWeight: '800', marginBottom: '8px' }}>Quản Lý Đơn Hàng</h1>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>Theo dõi và xử lý trạng thái đơn hàng của khách</p>
+      <ManagementHeader
+        title="Quản Lý Đơn Hàng"
+        subtitle="Theo dõi và xử lý trạng thái đơn hàng của khách"
+        activeTab="orders"
+      />
 
       {loading ? (
         <LoadingSpinner />
@@ -627,16 +680,16 @@ export const AdminCoupons = () => {
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '800' }}>Quản Lý Mã Giảm Giá (Coupons)</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Các chương trình khuyến mãi và voucher kích cầu mua sắm</p>
-        </div>
-
-        <button onClick={() => setShowModal(true)} className="btn btn-primary">
-          <Plus size={18} /> Thêm Mã Mới
-        </button>
-      </div>
+      <ManagementHeader
+        title="Quản Lý Mã Giảm Giá (Coupons)"
+        subtitle="Các chương trình khuyến mãi và voucher kích cầu mua sắm"
+        activeTab="coupons"
+        actionButton={
+          <button onClick={() => setShowModal(true)} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Plus size={16} /> Thêm Mã Mới
+          </button>
+        }
+      />
 
       {loading ? (
         <LoadingSpinner />

@@ -271,7 +271,7 @@ public class OrderService : IOrderService
             .Include(o => o.Shipment)
             .AsQueryable();
 
-        if (!isManager && userId.HasValue)
+        if ((!isManager || filter.OnlyMyOrders == true) && userId.HasValue)
         {
             query = query.Where(o => o.UserId == userId.Value);
         }

@@ -81,6 +81,10 @@ export const orderService = {
     return await apiClient.get('/orders', { params });
   },
 
+  getMyOrders: async (params = {}) => {
+    return await apiClient.get('/orders/my-orders', { params });
+  },
+
   getOrderById: async (id) => {
     return await apiClient.get(`/orders/${id}`);
   },
@@ -114,5 +118,20 @@ export const paymentService = {
   },
   processMockPayment: async (data) => {
     return await apiClient.post('/payment/vnpay/process-mock', data);
+  }
+};
+
+export const userService = {
+  getUsers: async (params = {}) => {
+    return await apiClient.get('/users', { params });
+  },
+  getUserById: async (id) => {
+    return await apiClient.get(`/users/${id}`);
+  },
+  createEmployee: async (data) => {
+    return await apiClient.post('/users/employees', data);
+  },
+  updateStatus: async (id, status) => {
+    return await apiClient.patch(`/users/${id}/status`, { status });
   }
 };

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 export const Navbar = () => {
-  const { user, isAuthenticated, isManager, logout } = useAuth();
+  const { user, isAuthenticated, isManager, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
   const [keyword, setKeyword] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -123,14 +123,25 @@ export const Navbar = () => {
                     Đơn hàng của tôi
                   </Link>
 
-                  {isManager && (
+                  {isAdmin && (
                     <Link
                       to="/admin"
                       onClick={() => setMenuOpen(false)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '13px', color: 'var(--primary)', fontWeight: '600', backgroundColor: 'var(--primary-light)' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '13px', color: 'var(--primary)', fontWeight: '700', backgroundColor: 'var(--primary-light)' }}
                     >
                       <Shield size={16} />
-                      Trang Quản Trị
+                      Quản Trị Admin
+                    </Link>
+                  )}
+
+                  {!isAdmin && isManager && (
+                    <Link
+                      to="/employee"
+                      onClick={() => setMenuOpen(false)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', fontSize: '13px', color: '#16a34a', fontWeight: '700', backgroundColor: '#f0fdf4' }}
+                    >
+                      <Shield size={16} />
+                      Kênh Nhân Viên
                     </Link>
                   )}
 

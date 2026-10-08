@@ -19,7 +19,16 @@ public class CartService : ICartService
 
     public async Task<ApiResponse<CartDto>> GetCartAsync(Guid userId)
     {
-        var cart = await GetOrCreateCartAsync(userId);
+        var cart = await _context.Carts
+            .AsNoTracking()
+            .Include(c => c.Items)
+                .ThenInclude(i => i.Book)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null)
+        {
+            cart = await GetOrCreateCartAsync(userId);
+        }
 
         var dto = new CartDto
         {
@@ -29,12 +38,12 @@ public class CartService : ICartService
             {
                 Id = i.Id,
                 BookId = i.BookId,
-                BookTitle = i.Book.Title,
-                BookSlug = i.Book.Slug,
-                CoverImageUrl = i.Book.CoverImageUrl,
-                UnitPrice = i.Book.DiscountPrice ?? i.Book.SalePrice,
+                BookTitle = i.Book?.Title ?? string.Empty,
+                BookSlug = i.Book?.Slug ?? string.Empty,
+                CoverImageUrl = i.Book?.CoverImageUrl,
+                UnitPrice = i.Book != null ? (i.Book.DiscountPrice ?? i.Book.SalePrice) : i.UnitPrice,
                 Quantity = i.Quantity,
-                AvailableStock = i.Book.StockQuantity
+                AvailableStock = i.Book?.StockQuantity ?? 0
             }).ToList()
         };
 
@@ -56,7 +65,7 @@ public class CartService : ICartService
         }
 
         var cart = await GetOrCreateCartAsync(userId);
-        var existingItem = cart.Items.FirstOrDefault(i => i.BookId == request.BookId);
+        var existingItem = cart.Items.FirstOrDefault(i => i.BookId == request.BookId && _context.Entry(i).State != EntityState.Deleted && _context.Entry(i).State != EntityState.Detached);
 
         if (existingItem != null)
         {
@@ -77,10 +86,10 @@ public class CartService : ICartService
                 CartId = cart.Id,
                 BookId = book.Id,
                 Quantity = request.Quantity,
-                UnitPrice = book.DiscountPrice ?? book.SalePrice
+                UnitPrice = book.DiscountPrice ?? book.SalePrice,
+                Book = book
             };
             _context.CartItems.Add(newItem);
-            cart.Items.Add(newItem);
         }
 
         cart.UpdatedAt = DateTime.UtcNow;
@@ -98,7 +107,7 @@ public class CartService : ICartService
         }
 
         var cart = await GetOrCreateCartAsync(userId);
-        var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+        var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId && _context.Entry(i).State != EntityState.Deleted && _context.Entry(i).State != EntityState.Detached);
         if (item == null)
         {
             return ApiResponse<CartDto>.Fail("Sản phẩm không có trong giỏ hàng.");
@@ -131,6 +140,7 @@ public class CartService : ICartService
         if (item != null)
         {
             _context.CartItems.Remove(item);
+            cart.Items.Remove(item);
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
@@ -143,7 +153,12 @@ public class CartService : ICartService
         var cart = await GetOrCreateCartAsync(userId);
         if (cart.Items.Any())
         {
-            _context.CartItems.RemoveRange(cart.Items);
+            var itemsToRemove = cart.Items.ToList();
+            _context.CartItems.RemoveRange(itemsToRemove);
+            foreach (var it in itemsToRemove)
+            {
+                cart.Items.Remove(it);
+            }
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }

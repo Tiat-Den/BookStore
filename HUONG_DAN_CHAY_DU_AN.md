@@ -45,8 +45,9 @@ npm run dev
 
 | Vai trò | Email | Mật khẩu | Chức năng nổi bật |
 | :--- | :--- | :--- | :--- |
-| **Quản trị viên (ADMIN)** | `admin@bookstore.com` | `Admin@123456` | Dashboard báo cáo doanh thu thực thu, Top sách bán chạy, Quản lý sách CRUD, Quản lý đơn hàng State Machine, Quản lý Voucher khuyến mãi |
-| **Khách hàng (CUSTOMER)** | `customer1@gmail.com` | `Password@123` | Tìm kiếm lọc sách, Giỏ hàng, Áp dụng Voucher `BOOK20`, Thanh toán COD / Mô phỏng VNPay Sandbox, Lịch sử đơn hàng, Đánh giá nhận xét sao (BR-29) |
+| **Quản trị viên (ADMIN)** | `admin@bookstore.com` | `Admin@123456` | Toàn quyền hệ thống: Dashboard doanh thu, Quản lý sách, Duyệt trạng thái đơn hàng, Quản lý Voucher |
+| **Nhân viên (EMPLOYEE)** | `employee@bookstore.com` | `Employee@123456` | Quản lý nghiệp vụ: Xem & duyệt trạng thái đơn hàng (`SHIPPING`, `DELIVERED`), quản lý danh mục & sách, xem báo cáo |
+| **Khách hàng (CUSTOMER)** | `customer1@gmail.com` | `Password@123` | Mua hàng: Tìm kiếm & lọc sách, Giỏ hàng, Áp dụng Voucher `BOOK20`, Thanh toán VNPay / COD, Đánh giá nhận xét (BR-29) |
 
 ---
 

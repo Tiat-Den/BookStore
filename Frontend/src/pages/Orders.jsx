@@ -15,7 +15,7 @@ export const Orders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await orderService.getOrders();
+      const res = await orderService.getMyOrders();
       if (res.success && res.data) {
         setOrders(res.data.items);
       }

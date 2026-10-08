@@ -80,6 +80,17 @@ public static class DbInitializer
                     RoleId = adminRole.Id,
                     Permission = perm
                 });
+
+                // Gán quyền cho EMPLOYEE nếu thuộc phạm vi quản lý sách, đơn hàng, báo cáo
+                var employeePerms = new[] { "PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_UPDATE", "ORDER_VIEW", "ORDER_UPDATE", "REPORT_VIEW" };
+                if (employeePerms.Contains(code))
+                {
+                    context.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = employeeRole.Id,
+                        Permission = perm
+                    });
+                }
             }
         }
         await context.SaveChangesAsync();
@@ -105,6 +116,56 @@ public static class DbInitializer
             {
                 UserId = adminUser.Id,
                 RoleId = adminRole.Id
+            });
+            await context.SaveChangesAsync();
+        }
+
+        // 3.1 Default Employee User (Password: Employee@123456)
+        var employeeEmail = "employee@bookstore.com";
+        var existingEmployee = await context.Users.Include(u => u.UserRoles).FirstOrDefaultAsync(u => u.Email == employeeEmail);
+        if (existingEmployee == null)
+        {
+            var employeeUser = new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Nhân Viên Quản Lý",
+                Email = employeeEmail,
+                Phone = "0911223344",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Employee@123456"),
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Users.Add(employeeUser);
+            context.UserRoles.Add(new UserRole
+            {
+                UserId = employeeUser.Id,
+                RoleId = employeeRole.Id
+            });
+            await context.SaveChangesAsync();
+        }
+
+        // 3.2 Default Customer User (Password: Password@123)
+        var customerEmail = "customer1@gmail.com";
+        var existingCustomer = await context.Users.Include(u => u.UserRoles).FirstOrDefaultAsync(u => u.Email == customerEmail);
+        if (existingCustomer == null)
+        {
+            var customerUser = new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = "Nguyễn Văn A",
+                Email = customerEmail,
+                Phone = "0909123456",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password@123"),
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Users.Add(customerUser);
+            context.UserRoles.Add(new UserRole
+            {
+                UserId = customerUser.Id,
+                RoleId = customerRole.Id
             });
             await context.SaveChangesAsync();
         }

@@ -17,7 +17,8 @@ echo ========================================================================
 echo Backend Swagger : http://localhost:5193/swagger
 echo Frontend Website : http://localhost:5173
 echo.
-echo Tai khoan Admin    : admin@bookstore.com / Admin@123456
+echo Tai khoan Admin     : admin@bookstore.com / Admin@123456
+echo Tai khoan Nhan vien : employee@bookstore.com / Employee@123456
 echo Tai khoan Khach hang: customer1@gmail.com / Password@123
 echo ========================================================================
 echo.

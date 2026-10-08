@@ -14,7 +14,11 @@ export const ProductCard = ({ book }) => {
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
   const handleAddToCart = async (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (loading) return;
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -127,8 +131,8 @@ export const ProductCard = ({ book }) => {
   );
 };
 
-export const ProtectedRoute = ({ children, requireManager = false }) => {
-  const { isAuthenticated, isManager, loading } = useAuth();
+export const ProtectedRoute = ({ children, requireManager = false, requireAdmin = false }) => {
+  const { isAuthenticated, isManager, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   if (loading) {
@@ -145,6 +149,22 @@ export const ProtectedRoute = ({ children, requireManager = false }) => {
           </p>
           <button onClick={() => navigate('/login')} className="btn btn-primary" style={{ width: '100%' }}>
             Đăng nhập ngay
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return (
+      <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
+        <div className="card" style={{ maxWidth: '440px', margin: '0 auto', padding: '36px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--danger)', marginBottom: '12px' }}>Quyền Hạn Bị Từ Chối</h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
+            Khu vực này chỉ dành riêng cho Quản Trị Viên (Admin). Tài khoản Nhân viên không có quyền truy cập chức năng này.
+          </p>
+          <button onClick={() => navigate('/employee')} className="btn btn-primary" style={{ width: '100%' }}>
+            Về kênh Nhân viên
           </button>
         </div>
       </div>
@@ -186,3 +206,39 @@ export const LoadingSpinner = ({ text = 'Đang tải dữ liệu...' }) => {
     </div>
   );
 };
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="container" style={{ padding: '80px 20px', textAlign: 'center' }}>
+          <div className="card" style={{ maxWidth: '500px', margin: '0 auto', padding: '36px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--danger)', marginBottom: '12px' }}>
+              Đã xảy ra lỗi hiển thị
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
+              {this.state.error?.message || 'Không thể hiển thị nội dung trang này.'}
+            </p>
+            <button onClick={() => window.location.href = '/'} className="btn btn-primary" style={{ width: '100%' }}>
+              Quay về Trang chủ
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}

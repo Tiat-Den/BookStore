@@ -28,6 +28,7 @@ builder.Services.AddScoped<BookStore.Application.Interfaces.IWishlistService, Bo
 builder.Services.AddScoped<BookStore.Application.Interfaces.ICouponService, BookStore.Infrastructure.Services.CouponService>();
 builder.Services.AddScoped<BookStore.Application.Interfaces.IReportService, BookStore.Infrastructure.Services.ReportService>();
 builder.Services.AddScoped<BookStore.Application.Interfaces.IPaymentService, BookStore.Infrastructure.Services.PaymentService>();
+builder.Services.AddScoped<BookStore.Application.Interfaces.IUserService, BookStore.Infrastructure.Services.UserService>();
 
 // 3. Add Controllers
 builder.Services.AddControllers();

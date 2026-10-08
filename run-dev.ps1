@@ -20,5 +20,6 @@ Write-Host "He thong da duoc khoi chay tren cac cua so rieng biet:" -ForegroundC
 Write-Host " - Backend Swagger : http://localhost:5193/swagger" -ForegroundColor White
 Write-Host " - Frontend UI      : http://localhost:5173" -ForegroundColor White
 Write-Host " - Admin Account   : admin@bookstore.com / Admin@123456" -ForegroundColor White
+Write-Host " - Employee Account: employee@bookstore.com / Employee@123456" -ForegroundColor White
 Write-Host " - Customer Account: customer1@gmail.com / Password@123" -ForegroundColor White
 Write-Host "========================================================================`n" -ForegroundColor Green

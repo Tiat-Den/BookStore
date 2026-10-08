@@ -29,6 +29,14 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("my-orders")]
+    public async Task<ActionResult<ApiResponse<PagedResult<OrderDto>>>> GetMyOrders([FromQuery] OrderFilterDto filter)
+    {
+        filter.OnlyMyOrders = true;
+        var result = await _orderService.GetOrdersAsync(filter, userId: GetUserId(), isManager: false);
+        return Ok(result);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<OrderDto>>> GetOrderById(Guid id)
     {

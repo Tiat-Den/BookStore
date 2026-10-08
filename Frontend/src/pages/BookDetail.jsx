@@ -46,7 +46,12 @@ export const BookDetail = () => {
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (adding) return;
     if (!isAuthenticated) {
       navigate('/login');
       return;
