@@ -1,0 +1,95 @@
+# =========================================================================
+# BookStore Project .gitignore (Root)
+# Bao gồm: .NET 8 / C#, Node.js / React / Vite, Visual Studio, IDE & OS
+# =========================================================================
+
+# -------------------------------------------------------------------------
+# 1. .NET & C# / ASP.NET Core
+# -------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.log
+
+# Visual Studio & VS Code
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.user
+*.userprefs
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Publish output
+**/publish/
+**/Publish/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# -------------------------------------------------------------------------
+# 2. Frontend (Node.js / React / Vite)
+# -------------------------------------------------------------------------
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/build/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment files (tránh lộ secrets)
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# -------------------------------------------------------------------------
+# 3. Database & SQL Server Local Files
+# -------------------------------------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+*.bak
+
+# -------------------------------------------------------------------------
+# 4. OS Specific Files
+# -------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Linux / Vim / Emacs
+*~
+*.swp
+*.swo
