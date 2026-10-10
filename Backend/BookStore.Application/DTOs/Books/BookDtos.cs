@@ -66,6 +66,7 @@ public class BookCreateDto
     public string? Dimensions { get; set; }
     public double? Weight { get; set; }
 
+    public string? AuthorName { get; set; }
     public List<Guid> AuthorIds { get; set; } = new();
     public List<Guid> CategoryIds { get; set; } = new();
 }
@@ -97,8 +98,9 @@ public class BookUpdateDto
     public string? Language { get; set; }
     public string? Dimensions { get; set; }
     public double? Weight { get; set; }
-    public BookStatus Status { get; set; }
+    public BookStatus Status { get; set; } = BookStatus.Active;
 
+    public string? AuthorName { get; set; }
     public List<Guid> AuthorIds { get; set; } = new();
     public List<Guid> CategoryIds { get; set; } = new();
 }

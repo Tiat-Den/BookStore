@@ -180,4 +180,72 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
         return ApiResponse<bool>.Ok(true, $"Cập nhật trạng thái tài khoản sang {newStatus} thành công.");
     }
+
+    public async Task<ApiResponse<UserDto>> UpdateUserAsync(Guid id, UpdateUserDto request, Guid currentUserId)
+    {
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+        {
+            return ApiResponse<UserDto>.Fail("Không tìm thấy người dùng.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Phone = request.Phone?.Trim();
+
+        // Cập nhật trạng thái (nếu có cung cấp)
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            if (id == currentUserId && request.Status.Equals("Locked", StringComparison.OrdinalIgnoreCase))
+            {
+                return ApiResponse<UserDto>.Fail("Bạn không thể tự khóa tài khoản của chính mình.");
+            }
+
+            if (Enum.TryParse<UserStatus>(request.Status, true, out var newStatus))
+            {
+                user.Status = newStatus;
+            }
+        }
+
+        // Cập nhật vai trò (nếu có cung cấp)
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var targetRoleName = request.Role.Trim().ToUpperInvariant();
+
+            // Nếu người dùng hiện tại là Admin đang tự đổi vai trò của chính mình -> Ngăn chặn để tránh mất quyền quản trị
+            if (id == currentUserId && targetRoleName != "ADMIN")
+            {
+                return ApiResponse<UserDto>.Fail("Bạn không thể tự hạ cấp vai trò Quản trị viên của chính mình.");
+            }
+
+            var targetRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == targetRoleName);
+            if (targetRole == null)
+            {
+                targetRole = new Role
+                {
+                    Id = Guid.NewGuid(),
+                    Name = targetRoleName,
+                    Description = $"Vai trò {targetRoleName}"
+                };
+                _context.Roles.Add(targetRole);
+                await _context.SaveChangesAsync();
+            }
+
+            // Gán lại vai trò mới
+            user.UserRoles.Clear();
+            user.UserRoles.Add(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = targetRole.Id
+            });
+        }
+
+        user.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return await GetUserByIdAsync(user.Id);
+    }
 }

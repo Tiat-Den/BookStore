@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart } from 'lucide-react';
 import { bookService } from '../services/catalogAndOrderServices';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 import { LoadingSpinner } from '../components/UIComponents';
 
 export const BookDetail = () => {
@@ -11,12 +12,31 @@ export const BookDetail = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  const isWishlisted = book ? isInWishlist(book.id) : false;
+
+  const handleToggleWishlist = async () => {
+    if (!book) return;
+    if (wishlistLoading) return;
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setWishlistLoading(true);
+    const res = await toggleWishlist(book.id);
+    setWishlistLoading(false);
+    if (!res.success && res.message) {
+      alert(res.message);
+    }
+  };
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -87,17 +107,61 @@ export const BookDetail = () => {
         <ArrowLeft size={16} /> Quay lại
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '48px', alignItems: 'start' }}>
-        {/* Book Cover Image */}
-        <div className="card" style={{ padding: '24px', display: 'flex', justifyContent: 'center' }}>
-          <img
-            src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80'}
-            alt={book.title}
-            style={{ width: '100%', maxWidth: '380px', maxHeight: '520px', objectFit: 'cover', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }}
-          />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '40px', alignItems: 'start' }}>
+        {/* Left Column: Book Cover Image & Customer Reviews */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {/* Book Cover Card */}
+          <div className="card" style={{ position: 'relative', padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <img
+              src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80'}
+              alt={book.title}
+              style={{ width: '100%', maxWidth: '380px', maxHeight: '520px', objectFit: 'cover', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80';
+              }}
+            />
+            {/* Quick floating wishlist button on image */}
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              disabled={wishlistLoading}
+              title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+              style={{
+                position: 'absolute',
+                top: '36px',
+                right: '36px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: isWishlisted ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                borderRadius: '50%',
+                width: '42px',
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                transition: 'transform 0.2s ease, background-color 0.2s ease',
+                zIndex: 2
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.backgroundColor = '#ffffff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.95)'; }}
+            >
+              <Heart
+                size={22}
+                color={isWishlisted ? '#ef4444' : '#64748b'}
+                fill={isWishlisted ? '#ef4444' : 'none'}
+              />
+            </button>
+          </div>
+
+          {/* Customer Reviews Section on Left Column */}
+          <div className="card" style={{ padding: '24px' }}>
+            <ReviewsSection bookId={book.id} isAuthenticated={isAuthenticated} />
+          </div>
         </div>
 
-        {/* Book Details */}
+        {/* Right Column: Book Details */}
         <div>
           {/* Categories tags */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -113,7 +177,7 @@ export const BookDetail = () => {
           {/* Metadata chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <User size={16} /> Tác giả: <strong>{book.authors?.map(a => a.name).join(', ') || 'Nhiều tác giả'}</strong>
+              Tác giả: <strong>{book.authors?.map(a => a.name).join(', ') || 'Nhiều tác giả'}</strong>
             </span>
             {book.publisherName && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -145,57 +209,113 @@ export const BookDetail = () => {
 
             <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
               Tình trạng tồn kho: {book.stockQuantity > 0 ? (
-                <strong style={{ color: 'var(--success)' }}>Còn hàng ({book.stockQuantity} cuốn)</strong>
+                <strong style={{ color: 'var(--success)' }}>Còn hàng</strong>
               ) : (
                 <strong style={{ color: 'var(--danger)' }}>Hết hàng</strong>
               )}
             </div>
           </div>
 
-          {/* Add to Cart Actions */}
-          {book.stockQuantity > 0 && (
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px' }}>
-              {/* Quantity input */}
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  style={{ width: '38px', height: '42px', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700' }}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.min(book.stockQuantity, Math.max(1, parseInt(e.target.value) || 1)))}
-                  style={{ width: '56px', height: '42px', border: 'none', textAlign: 'center', fontSize: '15px', fontWeight: '600', outline: 'none' }}
-                />
-                <button
-                  onClick={() => setQuantity(Math.min(book.stockQuantity, quantity + 1))}
-                  style={{ width: '38px', height: '42px', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700' }}
-                >
-                  +
-                </button>
-              </div>
+          {/* Actions: Add to Cart & Wishlist */}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap' }}>
+            {book.stockQuantity > 0 ? (
+              <>
+                {/* Quantity input */}
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', height: '48px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    style={{ width: '40px', height: '100%', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700', fontSize: '16px' }}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.min(book.stockQuantity, Math.max(1, parseInt(e.target.value) || 1)))}
+                    style={{ width: '56px', height: '100%', border: 'none', textAlign: 'center', fontSize: '15px', fontWeight: '600', outline: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.min(book.stockQuantity, quantity + 1))}
+                    style={{ width: '40px', height: '100%', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700', fontSize: '16px' }}
+                  >
+                    +
+                  </button>
+                </div>
 
-              {/* Add Button */}
-              <button
-                onClick={handleAddToCart}
-                disabled={adding}
-                className={`btn ${added ? 'btn-secondary' : 'btn-primary'} btn-lg`}
-                style={{ flex: 1 }}
-              >
-                {added ? (
-                  <>
-                    <Check size={20} /> Đã thêm {quantity} cuốn vào giỏ
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart size={20} /> Thêm vào giỏ hàng
-                  </>
-                )}
+                {/* Add to Cart Button */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={adding}
+                  className={`btn ${added ? 'btn-secondary' : 'btn-primary'} btn-lg`}
+                  style={{ flex: 1, minHeight: '48px', minWidth: '180px' }}
+                >
+                  {added ? (
+                    <>
+                      <Check size={20} /> Đã thêm {quantity} cuốn vào giỏ
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={20} /> Thêm vào giỏ hàng
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <button disabled className="btn btn-secondary btn-lg" style={{ flex: 1, minHeight: '48px', opacity: 0.6, cursor: 'not-allowed' }}>
+                Tạm thời hết hàng
               </button>
-            </div>
-          )}
+            )}
+
+            {/* Wishlist Button */}
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              disabled={wishlistLoading}
+              className="btn btn-lg"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                height: '48px',
+                padding: '0 22px',
+                borderRadius: 'var(--radius)',
+                border: isWishlisted ? '1.5px solid #f87171' : '1.5px solid var(--border)',
+                color: isWishlisted ? '#ef4444' : '#475569',
+                backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                if (!isWishlisted) {
+                  e.currentTarget.style.borderColor = '#fca5a5';
+                  e.currentTarget.style.backgroundColor = '#fff5f5';
+                  e.currentTarget.style.color = '#ef4444';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isWishlisted) {
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.color = '#475569';
+                }
+              }}
+              title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Lưu vào danh sách yêu thích"}
+            >
+              <Heart
+                size={20}
+                color={isWishlisted ? '#ef4444' : 'currentColor'}
+                fill={isWishlisted ? '#ef4444' : 'none'}
+              />
+              <span style={{ fontSize: '15px', fontWeight: '600' }}>
+                {isWishlisted ? 'Đã yêu thích' : 'Yêu thích'}
+              </span>
+            </button>
+          </div>
 
           {/* Description */}
           <div>
@@ -232,11 +352,6 @@ export const BookDetail = () => {
                 )}
               </tbody>
             </table>
-          </div>
-
-          {/* Customer Reviews Section */}
-          <div style={{ marginTop: '40px' }}>
-            <ReviewsSection bookId={book.id} isAuthenticated={isAuthenticated} />
           </div>
         </div>
       </div>
@@ -302,12 +417,12 @@ const ReviewsSection = ({ bookId, isAuthenticated }) => {
           )}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', fontWeight: '600' }}>Số sao đánh giá:</span>
-            <select className="select" value={rating} onChange={(e) => setRating(parseInt(e.target.value))} style={{ width: '130px', padding: '6px 10px' }}>
-              <option value="5">★★★★★ (5 sao)</option>
-              <option value="4">★★★★☆ (4 sao)</option>
-              <option value="3">★★★☆☆ (3 sao)</option>
-              <option value="2">★★☆☆☆ (2 sao)</option>
-              <option value="1">★☆☆☆☆ (1 sao)</option>
+            <select className="select" value={rating} onChange={(e) => setRating(parseInt(e.target.value))} style={{ width: '100px', padding: '6px 10px' }}>
+              <option value="5">★★★★★</option>
+              <option value="4">★★★★☆</option>
+              <option value="3">★★★☆☆</option>
+              <option value="2">★★☆☆☆</option>
+              <option value="1">★☆☆☆☆</option>
             </select>
           </div>
           <div className="form-group">

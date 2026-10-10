@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, UserPlus, Lock, Unlock, Shield, Search, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Users, UserPlus, Lock, Unlock, Shield, Search, CheckCircle, AlertTriangle, X, Edit } from 'lucide-react';
 import { userService } from '../../services/catalogAndOrderServices';
 import { useAuth } from '../../context/AuthContext';
 import { LoadingSpinner } from '../../components/UIComponents';
@@ -14,6 +14,8 @@ export const AdminUsers = () => {
   const [filterRole, setFilterRole] = useState('');
   const [keyword, setKeyword] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [msg, setMsg] = useState({ text: '', type: '' });
 
   const [formData, setFormData] = useState({
@@ -21,6 +23,13 @@ export const AdminUsers = () => {
     email: '',
     phone: '',
     password: ''
+  });
+
+  const [editFormData, setEditFormData] = useState({
+    fullName: '',
+    phone: '',
+    role: 'CUSTOMER',
+    status: 'Active'
   });
 
   const fetchUsers = async () => {
@@ -70,6 +79,36 @@ export const AdminUsers = () => {
     }
   };
 
+  const handleOpenEdit = (user) => {
+    setEditingUser(user);
+    setEditFormData({
+      fullName: user.fullName || '',
+      phone: user.phone || '',
+      role: user.roles?.[0] || 'CUSTOMER',
+      status: user.status || 'Active'
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      const res = await userService.updateUser(editingUser.id, editFormData);
+      if (res.success) {
+        setMsg({ text: 'Cập nhật thông tin và vai trò tài khoản thành công!', type: 'success' });
+        setShowEditModal(false);
+        setEditingUser(null);
+        fetchUsers();
+      } else {
+        setMsg({ text: res.message || 'Cập nhật thất bại.', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err.message || 'Lỗi khi cập nhật tài khoản.', type: 'error' });
+    }
+  };
+
   const handleToggleStatus = async (user) => {
     if (user.id === currentUser?.id) {
       alert('Bạn không thể tự khóa tài khoản của chính mình!');
@@ -100,7 +139,6 @@ export const AdminUsers = () => {
     <div className="container" style={{ padding: '36px 20px' }}>
       <ManagementHeader
         title="Quản Lý Tài Khoản"
-        subtitle="Quản lý người dùng, phân quyền nhân viên và bảo mật hệ thống"
         activeTab="users"
       />
 
@@ -220,16 +258,26 @@ export const AdminUsers = () => {
                       </td>
                       <td>{new Date(u.createdAt).toLocaleDateString('vi-VN')}</td>
                       <td style={{ textAlign: 'right' }}>
-                        {!isCurrent && primaryRole !== 'ADMIN' && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center' }}>
                           <button
-                            onClick={() => handleToggleStatus(u)}
-                            className={`btn btn-sm ${isLocked ? 'btn-outline' : 'btn-danger'}`}
-                            style={{ padding: '4px 10px', fontSize: '12px' }}
-                            title={isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                            onClick={() => handleOpenEdit(u)}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title="Chỉnh sửa thông tin & Vai trò"
                           >
-                            {isLocked ? <><Unlock size={14} /> Mở khóa</> : <><Lock size={14} /> Khóa</>}
+                            <Edit size={14} /> Sửa
                           </button>
-                        )}
+                          {!isCurrent && primaryRole !== 'ADMIN' && (
+                            <button
+                              onClick={() => handleToggleStatus(u)}
+                              className={`btn btn-sm ${isLocked ? 'btn-outline' : 'btn-danger'}`}
+                              style={{ padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              title={isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                            >
+                              {isLocked ? <><Unlock size={14} /> Mở khóa</> : <><Lock size={14} /> Khóa</>}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -316,6 +364,110 @@ export const AdminUsers = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">Hủy</button>
                 <button type="submit" className="btn btn-primary">Tạo Tài Khoản</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit User & Role */}
+      {showEditModal && editingUser && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit size={22} color="var(--primary)" />
+                <h3 style={{ fontSize: '18px', fontWeight: '800' }}>Chỉnh Sửa Thông Tin & Vai Trò</h3>
+              </div>
+              <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateUser}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="input"
+                    disabled
+                    value={editingUser.email}
+                    style={{ backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
+                    title="Email đăng nhập không thể thay đổi"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Họ và tên *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    required
+                    value={editFormData.fullName}
+                    onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Số điện thoại</label>
+                  <input
+                    type="tel"
+                    className="input"
+                    placeholder="0912345678"
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Vai trò hệ thống *</label>
+                    <select
+                      className="select"
+                      value={editFormData.role}
+                      disabled={editingUser.id === currentUser?.id}
+                      onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                      title={editingUser.id === currentUser?.id ? "Không thể tự thay đổi vai trò của chính mình" : ""}
+                    >
+                      <option value="CUSTOMER">Khách hàng (CUSTOMER)</option>
+                      <option value="EMPLOYEE">Nhân viên (EMPLOYEE)</option>
+                      <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                    </select>
+                    {editingUser.id === currentUser?.id && (
+                      <small style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Không thể tự đổi vai trò của chính bạn</small>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Trạng thái tài khoản *</label>
+                    <select
+                      className="select"
+                      value={editFormData.status}
+                      disabled={editingUser.id === currentUser?.id}
+                      onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                      title={editingUser.id === currentUser?.id ? "Không thể tự khóa tài khoản của chính mình" : ""}
+                    >
+                      <option value="Active">Hoạt động (Active)</option>
+                      <option value="Locked">Đã khóa (Locked)</option>
+                      <option value="Inactive">Tạm ngưng (Inactive)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button type="button" onClick={() => setShowEditModal(false)} className="btn btn-outline">Hủy</button>
+                <button type="submit" className="btn btn-primary">Lưu Thay Đổi</button>
               </div>
             </form>
           </div>

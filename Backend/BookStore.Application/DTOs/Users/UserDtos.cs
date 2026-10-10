@@ -46,3 +46,17 @@ public class UpdateUserStatusDto
     [Required]
     public string Status { get; set; } = "Active"; // Active, Inactive, Locked
 }
+
+public class UpdateUserDto
+{
+    [Required(ErrorMessage = "Họ tên không được để trống")]
+    [MaxLength(100)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Phone(ErrorMessage = "Số điện thoại không đúng định dạng")]
+    public string? Phone { get; set; }
+
+    public string? Role { get; set; } // "CUSTOMER", "EMPLOYEE", "ADMIN"
+
+    public string? Status { get; set; } // "Active", "Inactive", "Locked"
+}

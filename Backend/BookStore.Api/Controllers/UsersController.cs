@@ -69,4 +69,20 @@ public class UsersController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<UserDto>>> UpdateUser(Guid id, [FromBody] UpdateUserDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return BadRequest(ApiResponse<UserDto>.Fail("Dữ liệu không hợp lệ.", errors));
+        }
+
+        var result = await _userService.UpdateUserAsync(id, request, GetCurrentUserId());
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }

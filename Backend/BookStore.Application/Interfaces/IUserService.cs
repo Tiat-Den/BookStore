@@ -8,5 +8,6 @@ public interface IUserService
     Task<ApiResponse<PagedResult<UserDto>>> GetUsersAsync(UserFilterDto filter);
     Task<ApiResponse<UserDto>> GetUserByIdAsync(Guid id);
     Task<ApiResponse<UserDto>> CreateEmployeeAsync(CreateEmployeeDto request);
+    Task<ApiResponse<UserDto>> UpdateUserAsync(Guid id, UpdateUserDto request, Guid currentUserId);
     Task<ApiResponse<bool>> UpdateUserStatusAsync(Guid id, string status, Guid currentUserId);
 }

@@ -61,6 +61,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('bookstore_user');
   };
 
+  const updateProfile = async (data) => {
+    const res = await authService.updateProfile(data);
+    if (res.success && res.data) {
+      setUser(res.data);
+      localStorage.setItem('bookstore_user', JSON.stringify(res.data));
+      return { success: true, data: res.data };
+    }
+    return { success: false, message: res.message || 'Cập nhật thất bại' };
+  };
+
   const isManager = user?.roles?.some(r => r === 'ADMIN' || r === 'EMPLOYEE') ?? false;
   const isAdmin = user?.roles?.some(r => r === 'ADMIN') ?? false;
 
@@ -74,7 +84,9 @@ export const AuthProvider = ({ children }) => {
       loading,
       login,
       register,
-      logout
+      logout,
+      updateProfile,
+      setUser
     }}>
       {children}
     </AuthContext.Provider>

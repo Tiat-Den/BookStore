@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, ShoppingBag, FolderTree, CheckCircle, Clock, Truck, Shield } from 'lucide-react';
 import { bookService, orderService } from '../../services/catalogAndOrderServices';
 import { LoadingSpinner } from '../../components/UIComponents';
-import { ManagementHeader } from '../admin/AdminPages';
+import { ManagementHeader, renderOrderStatusBadge } from '../admin/AdminPages';
 
 export const EmployeeDashboard = () => {
   const [stats, setStats] = useState({
@@ -62,44 +62,100 @@ export const EmployeeDashboard = () => {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/orders"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý & Xử lý Đơn Hàng"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#eab308', marginBottom: '12px' }}>
             <Clock size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Đơn cần xử lý</span>
           <h2 style={{ fontSize: '30px', fontWeight: '800', marginTop: '4px', color: '#ca8a04' }}>{stats.pendingOrdersCount}</h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/orders"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý & Xử lý Đơn Hàng"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0284c7', marginBottom: '12px' }}>
             <Truck size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Đơn đang đóng gói / giao</span>
           <h2 style={{ fontSize: '30px', fontWeight: '800', marginTop: '4px', color: '#0284c7' }}>{stats.shippingOrdersCount}</h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/books"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý Kho Sách"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--primary)', marginBottom: '12px' }}>
             <BookOpen size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Tổng đầu sách</span>
           <h2 style={{ fontSize: '30px', fontWeight: '800', marginTop: '4px' }}>{stats.booksCount}</h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/orders"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý & Xử lý Đơn Hàng"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', marginBottom: '12px' }}>
             <ShoppingBag size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Tổng đơn trong hệ thống</span>
           <h2 style={{ fontSize: '30px', fontWeight: '800', marginTop: '4px' }}>{stats.ordersCount}</h2>
-        </div>
+        </Link>
       </div>
 
       {/* Recent Orders table */}
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
           <h3 style={{ fontSize: '17px', fontWeight: '700' }}>Đơn Hàng Gần Đây Cần Theo Dõi</h3>
-          <Link to="/employee/orders" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>Tới trang Xử lý Đơn Hàng →</Link>
+          <Link to="/admin/orders" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>Tới trang Xử lý Đơn Hàng →</Link>
         </div>
 
         <div className="table-responsive">
@@ -126,7 +182,7 @@ export const EmployeeDashboard = () => {
                     </span>
                   </td>
                   <td>
-                    <span className="badge badge-primary">{o.orderStatus}</span>
+                    {renderOrderStatusBadge(o.orderStatus)}
                   </td>
                   <td>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                 </tr>

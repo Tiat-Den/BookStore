@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Star, Check } from 'lucide-react';
+import { ShoppingCart, Star, Check, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export const ProductCard = ({ book }) => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isWishlisted = isInWishlist(book.id);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const navigate = useNavigate();
   const [added, setAdded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,6 +40,25 @@ export const ProductCard = ({ book }) => {
     }
   };
 
+  const handleToggleWishlist = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (wishlistLoading) return;
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setWishlistLoading(true);
+    const res = await toggleWishlist(book.id);
+    setWishlistLoading(false);
+    if (!res.success && res.message) {
+      alert(res.message);
+    }
+  };
+
   const discountPercent = book.discountPrice && book.salePrice > 0
     ? Math.round(((book.salePrice - book.discountPrice) / book.salePrice) * 100)
     : 0;
@@ -60,6 +83,38 @@ export const ProductCard = ({ book }) => {
         </span>
       )}
 
+      {/* Wishlist Button */}
+      <button
+        onClick={handleToggleWishlist}
+        disabled={wishlistLoading}
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          width: '34px',
+          height: '34px',
+          borderRadius: '50%',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 2,
+          transition: 'transform 0.2s, background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.12)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+      >
+        <Heart
+          size={18}
+          color="var(--danger)"
+          fill={isWishlisted ? "var(--danger)" : "none"}
+        />
+      </button>
+
       {/* Book Cover */}
       <Link to={`/books/${book.slug || book.id}`} style={{ display: 'block', aspectRatio: '3/4', overflow: 'hidden', borderRadius: 'var(--radius)', backgroundColor: '#f1f5f9', marginBottom: '14px' }}>
         <img
@@ -68,6 +123,10 @@ export const ProductCard = ({ book }) => {
           style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
           onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80';
+          }}
         />
       </Link>
 

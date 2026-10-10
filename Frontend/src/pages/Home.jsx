@@ -4,11 +4,42 @@ import { BookOpen, Sparkles, TrendingUp, ArrowRight, ShieldCheck, Truck, RotateC
 import { bookService, categoryService } from '../services/catalogAndOrderServices';
 import { ProductCard, LoadingSpinner } from '../components/UIComponents';
 
+const HERO_SLIDES = [
+  {
+    url: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=800&q=80',
+    caption: 'Hàng Ngàn Đầu Sách Tuyển Chọn',
+    tag: 'Sách Hay Bán Chạy'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80',
+    caption: 'Nuôi Dưỡng Tâm Hồn & Tri Thức',
+    tag: 'Đọc Sách Mỗi Ngày'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80',
+    caption: 'Ưu Đãi & Giao Nhanh Toàn Quốc',
+    tag: 'Freeship Từ 300K'
+  }
+];
+
 export const Home = () => {
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Carousel slide state & auto-play
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,12 +95,86 @@ export const Home = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <img
-              src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=700&q=80"
-              alt="Book collection"
-              style={{ width: '100%', maxWidth: '440px', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', transform: 'rotate(-2deg)' }}
-            />
+          {/* Slide 3 Hình Tự Động Chuyển */}
+          <div
+            style={{ display: 'flex', justifyContent: 'center' }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '460px',
+              height: '320px',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.45)',
+              border: '3px solid rgba(255, 255, 255, 0.25)'
+            }}>
+              {HERO_SLIDES.map((slide, index) => (
+                <div
+                  key={index}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    opacity: currentSlide === index ? 1 : 0,
+                    transform: currentSlide === index ? 'scale(1)' : 'scale(1.04)',
+                    transition: 'opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
+                    pointerEvents: currentSlide === index ? 'auto' : 'none'
+                  }}
+                >
+                  <img
+                    src={slide.url}
+                    alt={slide.caption}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                  {/* Gradient shadow for caption readability */}
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.2) 100%)'
+                  }} />
+
+                  {/* Caption & Tag */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '24px',
+                    left: '20px',
+                    right: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}>
+                    <span style={{
+                      alignSelf: 'flex-start',
+                      backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {slide.tag}
+                    </span>
+                    <span style={{
+                      fontSize: '15px',
+                      fontWeight: '700',
+                      color: '#ffffff',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                    }}>
+                      {slide.caption}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -174,7 +279,6 @@ export const Home = () => {
       {bestSellers.length > 0 && (
         <section className="container" style={{ marginBottom: '56px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-            <TrendingUp size={24} color="var(--primary)" />
             <h2 style={{ fontSize: '26px', fontWeight: '800' }}>Sách Bán Chạy Nhất</h2>
           </div>
 

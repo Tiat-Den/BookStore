@@ -272,7 +272,7 @@ public static class DbInitializer
                     Title = "Clean Code: A Handbook of Agile Software Craftsmanship",
                     Slug = "clean-code",
                     Description = "Cuốn sách gối đầu giường của mọi lập trình viên chuyên nghiệp về kỹ năng viết mã nguồn sạch và tối ưu.",
-                    CoverImageUrl = "https://images.unsplash.com/photo-1532012164546-f432f2e37b73?auto=format&fit=crop&w=600&q=80",
+                    CoverImageUrl = "https://m.media-amazon.com/images/I/41xShlnTZTL.jpg",
                     ImportPrice = 250000,
                     SalePrice = 380000,
                     DiscountPrice = 350000,
@@ -339,6 +339,51 @@ public static class DbInitializer
                 context.Books.Add(b);
             }
 
+            await context.SaveChangesAsync();
+        }
+
+        // Đảm bảo ảnh bìa và tác giả các cuốn sách mẫu được chuẩn hóa chính xác nếu DB đã được tạo từ trước
+        var cleanCodeBook = await context.Books.Include(b => b.BookAuthors).FirstOrDefaultAsync(b => b.Slug == "clean-code" || b.Title.Contains("Clean Code"));
+        if (cleanCodeBook != null)
+        {
+            if (string.IsNullOrEmpty(cleanCodeBook.CoverImageUrl) || cleanCodeBook.CoverImageUrl.Contains("photo-1532012164546"))
+            {
+                cleanCodeBook.CoverImageUrl = "https://m.media-amazon.com/images/I/41xShlnTZTL.jpg";
+            }
+            
+            var robertMartin = await context.Authors.FirstOrDefaultAsync(a => a.Name == "Robert C. Martin");
+            if (robertMartin == null)
+            {
+                robertMartin = new Author { Id = Guid.NewGuid(), Name = "Robert C. Martin", Nationality = "Mỹ" };
+                context.Authors.Add(robertMartin);
+                await context.SaveChangesAsync();
+            }
+
+            if (!cleanCodeBook.BookAuthors.Any(ba => ba.AuthorId == robertMartin.Id))
+            {
+                cleanCodeBook.BookAuthors.Clear();
+                cleanCodeBook.BookAuthors.Add(new BookAuthor { BookId = cleanCodeBook.Id, AuthorId = robertMartin.Id });
+            }
+            await context.SaveChangesAsync();
+        }
+
+        var dacNhanTamBook = await context.Books.Include(b => b.BookAuthors).FirstOrDefaultAsync(b => b.Slug == "dac-nhan-tam" || b.Title.Contains("Đắc Nhân Tâm"));
+        if (dacNhanTamBook != null)
+        {
+            var daleCarnegie = await context.Authors.FirstOrDefaultAsync(a => a.Name == "Dale Carnegie");
+            if (daleCarnegie == null)
+            {
+                daleCarnegie = new Author { Id = Guid.NewGuid(), Name = "Dale Carnegie", Nationality = "Mỹ" };
+                context.Authors.Add(daleCarnegie);
+                await context.SaveChangesAsync();
+            }
+
+            if (!dacNhanTamBook.BookAuthors.Any(ba => ba.AuthorId == daleCarnegie.Id))
+            {
+                dacNhanTamBook.BookAuthors.Clear();
+                dacNhanTamBook.BookAuthors.Add(new BookAuthor { BookId = dacNhanTamBook.Id, AuthorId = daleCarnegie.Id });
+                await context.SaveChangesAsync();
+            }
             await context.SaveChangesAsync();
         }
 

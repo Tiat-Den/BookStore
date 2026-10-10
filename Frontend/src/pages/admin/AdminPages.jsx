@@ -5,6 +5,62 @@ import { bookService, categoryService, orderService, reportService } from '../..
 import { LoadingSpinner } from '../../components/UIComponents';
 import { useAuth } from '../../context/AuthContext';
 
+export const renderOrderStatusBadge = (status) => {
+  switch (status) {
+    case 'PENDING':
+    case 'CONFIRMED':
+      return (
+        <span 
+          className="badge" 
+          style={{ 
+            backgroundColor: '#fef3c7', 
+            color: '#b45309', 
+            border: '1px solid #fde68a',
+            fontWeight: '700',
+            letterSpacing: '0.3px'
+          }}
+        >
+          {status}
+        </span>
+      );
+    case 'PROCESSING':
+    case 'SHIPPING':
+      return (
+        <span 
+          className="badge" 
+          style={{ 
+            backgroundColor: '#e0f2fe', 
+            color: '#0284c7', 
+            border: '1px solid #bae6fd',
+            fontWeight: '600'
+          }}
+        >
+          {status}
+        </span>
+      );
+    case 'DELIVERED':
+      return (
+        <span 
+          className="badge badge-success"
+          style={{ fontWeight: '600' }}
+        >
+          {status}
+        </span>
+      );
+    case 'CANCELLED':
+      return (
+        <span 
+          className="badge badge-danger"
+          style={{ fontWeight: '600' }}
+        >
+          {status}
+        </span>
+      );
+    default:
+      return <span className="badge badge-neutral">{status}</span>;
+  }
+};
+
 export const ManagementHeader = ({ title, subtitle, activeTab, actionButton }) => {
   const { isAdmin } = useAuth();
   const dashboardLink = isAdmin ? '/admin' : '/employee';
@@ -111,7 +167,21 @@ export const AdminDashboard = () => {
 
       {/* KPI Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '20px', marginBottom: '36px' }}>
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/orders"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Xem danh sách đơn hàng & doanh thu"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', marginBottom: '12px' }}>
             <TrendingUp size={28} />
             <span style={{ fontSize: '12px', background: '#dcfce7', color: '#16a34a', padding: '3px 8px', borderRadius: '12px', fontWeight: '600' }}>Thực thu</span>
@@ -120,31 +190,73 @@ export const AdminDashboard = () => {
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px', color: '#16a34a' }}>
             {formatPrice(stats.totalRevenue)}
           </h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/orders"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý Đơn Hàng"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--primary)', marginBottom: '12px' }}>
             <ShoppingBag size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Tổng đơn hàng</span>
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{stats.totalOrders}</h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/books"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý Kho Sách"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--secondary)', marginBottom: '12px' }}>
             <BookOpen size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Đầu sách đang bán</span>
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{stats.totalBooks}</h2>
-        </div>
+        </Link>
 
-        <div className="card" style={{ padding: '24px' }}>
+        <Link
+          to="/admin/users"
+          className="card"
+          style={{
+            padding: '24px',
+            textDecoration: 'none',
+            color: 'inherit',
+            display: 'block',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          title="Tới trang Quản lý Tài Khoản"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8b5cf6', marginBottom: '12px' }}>
             <Users size={28} />
           </div>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Thành viên hệ thống</span>
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{stats.totalCustomers}</h2>
-        </div>
+        </Link>
       </div>
 
       {/* Row: Biểu đồ doanh thu & Trạng thái đơn hàng */}
@@ -193,13 +305,13 @@ export const AdminDashboard = () => {
 
         {/* Trạng thái đơn hàng */}
         <div className="card" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Phân Bố Trạng Thái Đơn Hàng</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Trạng Thái Đơn Hàng</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {orderStatusCounts && orderStatusCounts.length > 0 ? (
               orderStatusCounts.map((sc) => (
                 <div key={sc.status} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span className="badge badge-primary">{sc.status}</span>
+                    {renderOrderStatusBadge(sc.status)}
                   </div>
                   <span style={{ fontWeight: '700', fontSize: '15px' }}>{sc.count} đơn</span>
                 </div>
@@ -234,7 +346,15 @@ export const AdminDashboard = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {book.imageUrl && (
-                          <img src={book.imageUrl} alt={book.title} style={{ width: '40px', height: '54px', objectFit: 'cover', borderRadius: '4px' }} />
+                          <img
+                            src={book.imageUrl}
+                            alt={book.title}
+                            style={{ width: '40px', height: '54px', objectFit: 'cover', borderRadius: '4px' }}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=100&q=80';
+                            }}
+                          />
                         )}
                         <strong>{book.title}</strong>
                       </div>
@@ -283,7 +403,7 @@ export const AdminDashboard = () => {
                       </span>
                     </td>
                     <td>
-                      <span className="badge badge-primary">{o.orderStatus}</span>
+                      {renderOrderStatusBadge(o.orderStatus)}
                     </td>
                     <td>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
                   </tr>
@@ -307,9 +427,11 @@ export const AdminBooks = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingBookId, setEditingBookId] = useState(null);
   const [formData, setFormData] = useState({
     isbn: '',
     title: '',
+    authorName: '',
     salePrice: 100000,
     importPrice: 60000,
     discountPrice: 90000,
@@ -332,15 +454,64 @@ export const AdminBooks = () => {
     fetchBooks();
   }, []);
 
-  const handleCreate = async (e) => {
+  const handleOpenCreate = () => {
+    setEditingBookId(null);
+    setFormData({
+      isbn: '',
+      title: '',
+      authorName: '',
+      salePrice: 100000,
+      importPrice: 60000,
+      discountPrice: '',
+      stockQuantity: 50,
+      description: '',
+      coverImageUrl: ''
+    });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (b) => {
+    setEditingBookId(b.id);
+    const currentAuthor = b.authors && b.authors.length > 0 ? b.authors.map(a => a.name).join(', ') : '';
+    setFormData({
+      isbn: b.isbn || '',
+      title: b.title || '',
+      authorName: currentAuthor,
+      salePrice: b.salePrice ?? 0,
+      importPrice: b.importPrice ?? 0,
+      discountPrice: b.discountPrice ?? '',
+      stockQuantity: b.stockQuantity ?? 0,
+      description: b.description || '',
+      coverImageUrl: b.coverImageUrl || '',
+      status: b.status ?? 1
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await bookService.createBook(formData);
+    const payload = {
+      ...formData,
+      salePrice: Number(formData.salePrice),
+      importPrice: Number(formData.importPrice) || 0,
+      discountPrice: formData.discountPrice !== '' && formData.discountPrice !== null ? Number(formData.discountPrice) : null,
+      stockQuantity: Number(formData.stockQuantity) || 0,
+      status: formData.status ?? 1
+    };
+
+    let res;
+    if (editingBookId) {
+      res = await bookService.updateBook(editingBookId, payload);
+    } else {
+      res = await bookService.createBook(payload);
+    }
+
     if (res.success) {
-      alert('Tạo sách mới thành công!');
+      alert(editingBookId ? 'Cập nhật thông tin sách thành công!' : 'Tạo sách mới thành công!');
       setShowModal(false);
       fetchBooks();
     } else {
-      alert(res.message);
+      alert(res.message || 'Thao tác không thành công.');
     }
   };
 
@@ -361,14 +532,21 @@ export const AdminBooks = () => {
     <div className="container" style={{ padding: '36px 20px' }}>
       <ManagementHeader
         title="Quản Lý Kho Sách"
-        subtitle="Danh sách toàn bộ các đầu sách trong hệ thống"
         activeTab="books"
-        actionButton={
-          <button onClick={() => setShowModal(true)} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Plus size={16} /> Thêm Sách Mới
-          </button>
-        }
       />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>
+          Tổng số đầu sách: <strong>{books.length}</strong>
+        </div>
+        <button 
+          onClick={handleOpenCreate} 
+          className="btn btn-primary" 
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 18px', fontWeight: '600' }}
+        >
+          <Plus size={16} /> Thêm Sách Mới
+        </button>
+      </div>
 
       {loading ? (
         <LoadingSpinner />
@@ -379,6 +557,7 @@ export const AdminBooks = () => {
               <thead>
                 <tr>
                   <th>Sách</th>
+                  <th>Tác Giả</th>
                   <th>ISBN</th>
                   <th>Giá Bán</th>
                   <th>Giá Khuyến Mãi</th>
@@ -396,9 +575,18 @@ export const AdminBooks = () => {
                           src={b.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=100&q=80'}
                           alt={b.title}
                           style={{ width: '40px', height: '54px', objectFit: 'cover', borderRadius: '4px' }}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=100&q=80';
+                          }}
                         />
                         <strong style={{ fontSize: '14px' }}>{b.title}</strong>
                       </div>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: '600' }}>
+                        {b.authors && b.authors.length > 0 ? b.authors.map(a => a.name).join(', ') : 'Chưa có'}
+                      </span>
                     </td>
                     <td>{b.isbn}</td>
                     <td>{formatPrice(b.salePrice)}</td>
@@ -406,9 +594,14 @@ export const AdminBooks = () => {
                     <td><strong>{b.stockQuantity}</strong></td>
                     <td>{b.soldQuantity}</td>
                     <td>
-                      <button onClick={() => handleDelete(b.id)} className="btn btn-danger btn-sm" title="Xóa sách">
-                        <Trash2 size={15} />
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => handleOpenEdit(b)} className="btn btn-outline btn-sm" title="Chỉnh sửa sách">
+                          <Edit size={15} />
+                        </button>
+                        <button onClick={() => handleDelete(b.id)} className="btn btn-danger btn-sm" title="Xóa sách">
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -418,17 +611,19 @@ export const AdminBooks = () => {
         </div>
       )}
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>Thêm Cuốn Sách Mới</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>
+                {editingBookId ? 'Chỉnh Sửa Thông Tin Sách' : 'Thêm Cuốn Sách Mới'}
+              </h3>
               <button onClick={() => setShowModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Tên sách *</label>
@@ -442,11 +637,25 @@ export const AdminBooks = () => {
                 </div>
 
                 <div className="form-group">
+                  <label className="form-label">Tác giả *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    required
+                    placeholder="Nhập tên tác giả (VD: Dale Carnegie, Robert C. Martin, Nguyễn Nhật Ánh...)"
+                    value={formData.authorName}
+                    onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
                   <label className="form-label">Mã ISBN *</label>
                   <input
                     type="text"
                     className="input"
                     required
+                    disabled={!!editingBookId}
+                    title={editingBookId ? "Mã ISBN không thể thay đổi sau khi tạo" : ""}
                     value={formData.isbn}
                     onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
                   />
@@ -470,7 +679,7 @@ export const AdminBooks = () => {
                       type="number"
                       className="input"
                       value={formData.discountPrice}
-                      onChange={(e) => setFormData({ ...formData, discountPrice: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value === '' ? '' : parseFloat(e.target.value) || 0 })}
                     />
                   </div>
                 </div>
@@ -487,7 +696,7 @@ export const AdminBooks = () => {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Số lượng tồn kho ban đầu</label>
+                    <label className="form-label">Số lượng tồn kho</label>
                     <input
                       type="number"
                       className="input"
@@ -521,7 +730,9 @@ export const AdminBooks = () => {
 
               <div className="modal-footer">
                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">Hủy</button>
-                <button type="submit" className="btn btn-primary">Lưu Sách</button>
+                <button type="submit" className="btn btn-primary">
+                  {editingBookId ? 'Cập Nhật' : 'Lưu Sách'}
+                </button>
               </div>
             </form>
           </div>
@@ -566,7 +777,6 @@ export const AdminOrders = () => {
     <div className="container" style={{ padding: '36px 20px' }}>
       <ManagementHeader
         title="Quản Lý Đơn Hàng"
-        subtitle="Theo dõi và xử lý trạng thái đơn hàng của khách"
         activeTab="orders"
       />
 
@@ -597,7 +807,7 @@ export const AdminOrders = () => {
                     <td><strong style={{ color: 'var(--primary)' }}>{formatPrice(o.totalAmount)}</strong></td>
                     <td>{o.paymentMethod}</td>
                     <td>
-                      <span className="badge badge-primary">{o.orderStatus}</span>
+                      {renderOrderStatusBadge(o.orderStatus)}
                     </td>
                     <td>
                       <select
@@ -681,15 +891,22 @@ export const AdminCoupons = () => {
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
       <ManagementHeader
-        title="Quản Lý Mã Giảm Giá (Coupons)"
-        subtitle="Các chương trình khuyến mãi và voucher kích cầu mua sắm"
+        title="Quản Lý Mã Giảm Giá"
         activeTab="coupons"
-        actionButton={
-          <button onClick={() => setShowModal(true)} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Plus size={16} /> Thêm Mã Mới
-          </button>
-        }
       />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>
+          Tổng số mã khuyến mãi: <strong>{coupons.length}</strong>
+        </div>
+        <button 
+          onClick={() => setShowModal(true)} 
+          className="btn btn-primary" 
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 18px', fontWeight: '600' }}
+        >
+          <Plus size={16} /> Thêm Mã Mới
+        </button>
+      </div>
 
       {loading ? (
         <LoadingSpinner />

@@ -81,10 +81,7 @@ export const Cart = () => {
                           <div>
                             <Link to={`/books/${item.bookSlug || item.bookId}`} style={{ fontWeight: '700', color: 'var(--text-main)', fontSize: '14px' }}>
                               {item.bookTitle}
-                            </Link>
-                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              Tồn kho: {item.availableStock} cuốn
-                            </div>
+                            </Link>                        
                           </div>
                         </div>
                       </td>

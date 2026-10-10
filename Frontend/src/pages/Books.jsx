@@ -14,7 +14,10 @@ export const Books = () => {
 
   // Filters state
   const keyword = searchParams.get('keyword') || '';
-  const categoryId = searchParams.get('categoryId') || '';
+  const rawCategoryId = searchParams.get('categoryId') || '';
+  const categorySlug = searchParams.get('category') || '';
+  const matchedCategory = categories.find(c => c.slug === categorySlug || c.id === rawCategoryId);
+  const categoryId = rawCategoryId || (matchedCategory ? matchedCategory.id : '');
   const sort = searchParams.get('sort') || 'new';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const minPrice = searchParams.get('minPrice') || '';
@@ -58,13 +61,19 @@ export const Books = () => {
 
   const updateParam = (key, val) => {
     const newParams = new URLSearchParams(searchParams);
+    if (key === 'categoryId') {
+      newParams.delete('category');
+    }
     if (val) {
       newParams.set(key, val);
     } else {
       newParams.delete(key);
     }
-    newParams.set('page', '1'); // reset to page 1 on filter change
+    if (key !== 'page') {
+      newParams.set('page', '1');
+    }
     setSearchParams(newParams);
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
   return (

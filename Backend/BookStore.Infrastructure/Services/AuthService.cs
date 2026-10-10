@@ -111,6 +111,7 @@ public class AuthService : IAuthService
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
+            .Include(u => u.Addresses)
             .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
         if (user == null)
@@ -139,12 +140,16 @@ public class AuthService : IAuthService
 
         var token = _jwtTokenGenerator.GenerateToken(user, roles, permissions);
 
+        var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault) ?? user.Addresses.FirstOrDefault();
+        var addressString = defaultAddr?.AddressLine;
+
         var profile = new UserProfileDto
         {
             Id = user.Id,
             FullName = user.FullName,
             Email = user.Email,
             Phone = user.Phone,
+            Address = addressString,
             Status = user.Status.ToString(),
             Roles = roles,
             Permissions = permissions
@@ -164,6 +169,7 @@ public class AuthService : IAuthService
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
+            .Include(u => u.Addresses)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
@@ -178,12 +184,16 @@ public class AuthService : IAuthService
             .Distinct()
             .ToList();
 
+        var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault) ?? user.Addresses.FirstOrDefault();
+        var addressString = defaultAddr?.AddressLine;
+
         var profile = new UserProfileDto
         {
             Id = user.Id,
             FullName = user.FullName,
             Email = user.Email,
             Phone = user.Phone,
+            Address = addressString,
             Status = user.Status.ToString(),
             Roles = roles,
             Permissions = permissions
@@ -191,4 +201,73 @@ public class AuthService : IAuthService
 
         return ApiResponse<UserProfileDto>.Ok(profile);
     }
+
+    public async Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequestDto request)
+    {
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return ApiResponse<UserProfileDto>.Fail("Không tìm thấy thông tin người dùng.");
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.Phone = request.Phone?.Trim();
+        user.UpdatedAt = DateTime.UtcNow;
+
+        if (request.Address != null)
+        {
+            var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault) ?? user.Addresses.FirstOrDefault();
+            if (defaultAddr != null)
+            {
+                defaultAddr.AddressLine = request.Address.Trim();
+                defaultAddr.ReceiverName = user.FullName;
+                defaultAddr.Phone = user.Phone ?? "";
+            }
+            else if (!string.IsNullOrWhiteSpace(request.Address))
+            {
+                _context.Addresses.Add(new Address
+                {
+                    UserId = userId,
+                    ReceiverName = user.FullName,
+                    Phone = user.Phone ?? "",
+                    AddressLine = request.Address.Trim(),
+                    Province = "",
+                    District = "",
+                    Ward = "",
+                    IsDefault = true
+                });
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        return await GetProfileAsync(userId);
+    }
+
+    public async Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+        {
+            return ApiResponse<bool>.Fail("Không tìm thấy thông tin người dùng.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            return ApiResponse<bool>.Fail("Mật khẩu hiện tại không chính xác.");
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return ApiResponse<bool>.Ok(true, "Đổi mật khẩu thành công!");
+    }
 }
+

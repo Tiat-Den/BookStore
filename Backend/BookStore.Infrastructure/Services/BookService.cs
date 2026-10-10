@@ -34,11 +34,18 @@ public class BookService : IBookService
             query = query.Where(b => b.Status == BookStatus.Active);
         }
 
-        // 2. Keyword filter (Title, ISBN or Slug)
+        // 2. Keyword filter (Title, ISBN, Slug, Author, Publisher, Category)
         if (!string.IsNullOrWhiteSpace(filter.Keyword))
         {
             var kw = filter.Keyword.Trim().ToLower();
-            query = query.Where(b => b.Title.ToLower().Contains(kw) || b.ISBN.ToLower().Contains(kw) || b.Slug.ToLower().Contains(kw));
+            query = query.Where(b =>
+                b.Title.ToLower().Contains(kw) ||
+                b.ISBN.ToLower().Contains(kw) ||
+                b.Slug.ToLower().Contains(kw) ||
+                b.BookAuthors.Any(ba => ba.Author.Name.ToLower().Contains(kw)) ||
+                (b.Publisher != null && b.Publisher.Name.ToLower().Contains(kw)) ||
+                b.BookCategories.Any(bc => bc.Category.Name.ToLower().Contains(kw))
+            );
         }
 
         // 3. Category filter
@@ -185,7 +192,24 @@ public class BookService : IBookService
         };
 
         // Gán tác giả
-        if (request.AuthorIds.Any())
+        if (!string.IsNullOrWhiteSpace(request.AuthorName))
+        {
+            var authorName = request.AuthorName.Trim();
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Name.ToLower() == authorName.ToLower());
+            if (author == null)
+            {
+                author = new Author
+                {
+                    Id = Guid.NewGuid(),
+                    Name = authorName,
+                    Nationality = "Việt Nam"
+                };
+                _context.Authors.Add(author);
+                await _context.SaveChangesAsync();
+            }
+            book.BookAuthors.Add(new BookAuthor { BookId = book.Id, AuthorId = author.Id });
+        }
+        else if (request.AuthorIds.Any())
         {
             foreach (var authorId in request.AuthorIds)
             {
@@ -248,21 +272,45 @@ public class BookService : IBookService
         book.Language = request.Language;
         book.Dimensions = request.Dimensions;
         book.Weight = request.Weight;
-        book.Status = request.Status;
+        book.Status = request.Status == BookStatus.Draft && book.Status == BookStatus.Active ? BookStatus.Active : request.Status;
         book.UpdatedAt = DateTime.UtcNow;
 
-        // Cập nhật quan hệ Author
-        book.BookAuthors.Clear();
-        foreach (var authorId in request.AuthorIds)
+        // Cập nhật quan hệ Author (nếu được cung cấp qua tên hoặc ID)
+        if (!string.IsNullOrWhiteSpace(request.AuthorName))
         {
-            book.BookAuthors.Add(new BookAuthor { BookId = book.Id, AuthorId = authorId });
+            var authorName = request.AuthorName.Trim();
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Name.ToLower() == authorName.ToLower());
+            if (author == null)
+            {
+                author = new Author
+                {
+                    Id = Guid.NewGuid(),
+                    Name = authorName,
+                    Nationality = "Việt Nam"
+                };
+                _context.Authors.Add(author);
+                await _context.SaveChangesAsync();
+            }
+            book.BookAuthors.Clear();
+            book.BookAuthors.Add(new BookAuthor { BookId = book.Id, AuthorId = author.Id });
+        }
+        else if (request.AuthorIds != null && request.AuthorIds.Count > 0)
+        {
+            book.BookAuthors.Clear();
+            foreach (var authorId in request.AuthorIds)
+            {
+                book.BookAuthors.Add(new BookAuthor { BookId = book.Id, AuthorId = authorId });
+            }
         }
 
-        // Cập nhật quan hệ Category
-        book.BookCategories.Clear();
-        foreach (var categoryId in request.CategoryIds)
+        // Cập nhật quan hệ Category (nếu được cung cấp)
+        if (request.CategoryIds != null && request.CategoryIds.Count > 0)
         {
-            book.BookCategories.Add(new BookCategory { BookId = book.Id, CategoryId = categoryId });
+            book.BookCategories.Clear();
+            foreach (var categoryId in request.CategoryIds)
+            {
+                book.BookCategories.Add(new BookCategory { BookId = book.Id, CategoryId = categoryId });
+            }
         }
 
         // Cập nhật Inventory tương ứng

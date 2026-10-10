@@ -131,6 +131,9 @@ export const userService = {
   createEmployee: async (data) => {
     return await apiClient.post('/users/employees', data);
   },
+  updateUser: async (id, data) => {
+    return await apiClient.put(`/users/${id}`, data);
+  },
   updateStatus: async (id, status) => {
     return await apiClient.patch(`/users/${id}/status`, { status });
   }
