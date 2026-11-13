@@ -7,6 +7,9 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService, paymentService } from '../services/catalogAndOrderServices';
+import vnpayLogo from '../assets/vnpay-logo.svg';
+import momoLogo from '../assets/momo-logo.png';
+import codLogo from '../assets/cod-logo.png';
 
 export const Checkout = () => {
   const { cart, refreshCart } = useCart();
@@ -308,9 +311,12 @@ export const Checkout = () => {
                   checked={formData.paymentMethod === 'COD'}
                   onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                 />
-                <div>
-                  <strong style={{ display: 'block', fontSize: '14px' }}>Thanh toán khi nhận hàng (COD)</strong>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bạn chỉ phải thanh toán tiền khi nhân viên giao sách tận nơi.</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src={codLogo} alt="COD" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '14px' }}>Thanh toán khi nhận hàng (COD)</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bạn chỉ phải thanh toán tiền khi nhân viên giao sách tận nơi.</span>
+                  </div>
                 </div>
               </label>
 
@@ -331,7 +337,8 @@ export const Checkout = () => {
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img src={vnpayLogo} alt="VNPay" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
                       <strong style={{ fontSize: '14px' }}>Ví điện tử VNPay / QR Code</strong>
                     </div>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Quét mã QR thanh toán nhanh qua ứng dụng ngân hàng hoặc ví VNPay.</span>
@@ -498,7 +505,8 @@ export const Checkout = () => {
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img src={momoLogo} alt="MoMo" style={{ height: '22px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} />
                       <strong style={{ fontSize: '14px' }}>Ví MoMo</strong>
                     </div>
                     <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Thanh toán an toàn, tức thì qua ứng dụng ví MoMo.</span>

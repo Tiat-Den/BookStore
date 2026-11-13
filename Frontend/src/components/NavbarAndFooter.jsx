@@ -11,6 +11,9 @@ import { useWishlist } from '../context/WishlistContext';
 import { categoryService } from '../services/catalogAndOrderServices';
 import bookStoreLogo from '../assets/book-store-logo.png';
 import boCongThuongLogo from '../assets/bo-cong-thuong.png';
+import vnpayLogo from '../assets/vnpay-logo.svg';
+import momoLogo from '../assets/momo-logo.png';
+import codLogo from '../assets/cod-logo.png';
 
 const POPULAR_SEARCHES = ['Đắc Nhân Tâm', 'Mắt Biếc', 'Sapiens', 'Tư Duy Nhanh & Chậm', 'Kinh Tế', 'Dế Mèn'];
 
@@ -685,83 +688,72 @@ export const Footer = () => {
 
               {/* Payment Method Logos */}
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '10px' }}>
                   Phương thức thanh toán
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {/* VNPAY */}
-                  <div
-                    title="Cổng thanh toán VNPAY-QR"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
-                      padding: '3px 8px',
-                      height: '28px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '3px',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#005baa' }}>VN</span>
-                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#ed1c24' }}>PAY</span>
-                    <span style={{ background: '#005baa', color: '#ffffff', fontSize: '8px', fontWeight: '800', padding: '1px 3px', borderRadius: '2px' }}>QR</span>
-                  </div>
-
-                  {/* MoMo */}
-                  <div
-                    title="Ví điện tử MoMo"
-                    style={{
-                      background: '#a50064',
-                      borderRadius: '6px',
-                      padding: '3px 8px',
-                      height: '28px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 1px 2px rgba(165, 0, 100, 0.25)'
-                    }}
-                  >
-                    <span style={{ color: '#ffffff', fontWeight: '900', fontSize: '11px', letterSpacing: '0.4px' }}>momo</span>
-                  </div>
-
-                  {/* ZaloPay */}
-                  <div
-                    title="Ví điện tử ZaloPay"
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
-                      padding: '3px 8px',
-                      height: '28px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '2px',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#0068ff' }}>Zalo</span>
-                    <span style={{ fontWeight: '800', fontSize: '11px', color: '#00be00' }}>Pay</span>
-                  </div>
-
                   {/* COD */}
                   <div
                     title="Thanh toán khi nhận hàng (COD)"
                     style={{
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
-                      padding: '3px 8px',
-                      height: '28px',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      height: '34px',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                      gap: '6px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      transition: 'transform 0.15s ease'
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                   >
-                    <span style={{ fontSize: '12px' }}>💵</span>
-                    <span style={{ fontWeight: '800', fontSize: '11px', color: '#059669' }}>COD</span>
+                    <img src={codLogo} alt="COD" style={{ height: '20px', width: 'auto', objectFit: 'contain' }} />
+                    <span style={{ fontWeight: '800', fontSize: '11.5px', color: '#16a34a' }}>COD</span>
+                  </div>
+
+                  {/* VNPay */}
+                  <div
+                    title="Cổng thanh toán VNPAY / QR Code"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      height: '34px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      transition: 'transform 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                  >
+                    <img src={vnpayLogo} alt="VNPAY" style={{ height: '20px', width: 'auto', objectFit: 'contain' }} />
+                  </div>
+
+                  {/* MoMo */}
+                  <div
+                    title="Ví điện tử MoMo"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      height: '34px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      transition: 'transform 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                  >
+                    <img src={momoLogo} alt="MoMo" style={{ height: '22px', width: 'auto', objectFit: 'contain', borderRadius: '4px' }} />
+                    <span style={{ fontWeight: '800', fontSize: '11.5px', color: '#a50064' }}>MoMo</span>
                   </div>
                 </div>
               </div>
