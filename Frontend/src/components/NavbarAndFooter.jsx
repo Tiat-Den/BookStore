@@ -10,6 +10,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { categoryService } from '../services/catalogAndOrderServices';
 import bookStoreLogo from '../assets/book-store-logo.png';
+import boCongThuongLogo from '../assets/bo-cong-thuong.png';
 
 const POPULAR_SEARCHES = ['Đắc Nhân Tâm', 'Mắt Biếc', 'Sapiens', 'Tư Duy Nhanh & Chậm', 'Kinh Tế', 'Dế Mèn'];
 
@@ -659,35 +660,218 @@ export const Footer = () => {
 
           {/* Trust Badges & Payments */}
           <div>
-            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginBottom: '18px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
               Chứng Nhận & Thanh Toán
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* MoIT Certificate Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                <ShieldCheck size={28} color="#16a34a" />
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: '#15803d' }}>ĐÃ THÔNG BÁO</div>
-                  <div style={{ fontSize: '11px', color: '#166534' }}>BỘ CÔNG THƯƠNG</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* MoIT Certificate Official Logo */}
+              <div>
+                <a
+                  href="http://online.gov.vn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-block', transition: 'transform 0.2s ease' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  title="Website đã đăng ký & thông báo Bộ Công Thương"
+                >
+                  <img
+                    src={boCongThuongLogo}
+                    alt="Đã thông báo Bộ Công Thương"
+                    style={{ height: '44px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                  />
+                </a>
+              </div>
+
+              {/* Payment Method Logos */}
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '8px' }}>
+                  Phương thức thanh toán
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* VNPAY */}
+                  <div
+                    title="Cổng thanh toán VNPAY-QR"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#005baa' }}>VN</span>
+                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#ed1c24' }}>PAY</span>
+                    <span style={{ background: '#005baa', color: '#ffffff', fontSize: '8px', fontWeight: '800', padding: '1px 3px', borderRadius: '2px' }}>QR</span>
+                  </div>
+
+                  {/* MoMo */}
+                  <div
+                    title="Ví điện tử MoMo"
+                    style={{
+                      background: '#a50064',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 1px 2px rgba(165, 0, 100, 0.25)'
+                    }}
+                  >
+                    <span style={{ color: '#ffffff', fontWeight: '900', fontSize: '11px', letterSpacing: '0.4px' }}>momo</span>
+                  </div>
+
+                  {/* ZaloPay */}
+                  <div
+                    title="Ví điện tử ZaloPay"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ fontWeight: '900', fontSize: '11px', color: '#0068ff' }}>Zalo</span>
+                    <span style={{ fontWeight: '800', fontSize: '11px', color: '#00be00' }}>Pay</span>
+                  </div>
+
+                  {/* Visa */}
+                  <div
+                    title="Thẻ quốc tế Visa"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <svg height="14" viewBox="0 0 48 16" fill="none">
+                      <path d="M18.8 1.2L12.3 15.2H8.1L5 3.3C4.8 2.6 4.7 2.3 4.1 2C3.2 1.5 1.5 1.1 0 0.8L0.1 0.4H7.2C8.1 0.4 8.9 1 9.1 2.1L10.8 11.2L15 0.4H18.8V1.2Z" fill="#1A1F71"/>
+                      <path d="M22.5 0.4H18.6L15.6 15.2H19.5L22.5 0.4Z" fill="#1A1F71"/>
+                      <path d="M31.2 5.1C31.2 3.2 28.5 3 28.5 2.1C28.5 1.8 28.8 1.4 29.5 1.3C29.9 1.2 31 1.2 32.3 1.8L33 0.6C32 0.2 30.8 0 29.3 0C25.7 0 23.2 1.9 23.2 4.6C23.2 6.6 25 7.7 26.4 8.4C27.8 9.1 28.3 9.6 28.3 10.2C28.3 11.1 27.2 11.5 26.2 11.5C24.4 11.5 23.3 11 22.5 10.6L21.7 11.9C22.6 12.3 24.2 12.7 25.9 12.7C29.7 12.7 32.2 10.8 32.2 8C32.2 6.9 31.8 5.8 31.2 5.1Z" fill="#1A1F71"/>
+                      <path d="M37.3 11.8C37.6 11 39.1 2.9 39.1 2.9C39.1 2.9 39.5 0.9 39.7 0.4H35.9C35.1 0.4 34.4 0.9 34.1 1.6L29.1 15.2H33.2L34 13H37L37.3 11.8ZM34.7 10.1L36.3 5.4L37.2 10.1H34.7Z" fill="#1A1F71"/>
+                      <path d="M5.1 3.3L8.2 15.2H12.4L6 0.4H2L0.1 9.5C0.1 9.5 2.3 4.2 5.1 3.3Z" fill="#F7B600"/>
+                    </svg>
+                  </div>
+
+                  {/* Mastercard */}
+                  <div
+                    title="Thẻ quốc tế Mastercard"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <svg height="17" viewBox="0 0 32 20" fill="none">
+                      <circle cx="11" cy="10" r="9" fill="#EB001B"/>
+                      <circle cx="21" cy="10" r="9" fill="#F79E1B"/>
+                      <path d="M16 3.7A9 9 0 0 0 12.5 10A9 9 0 0 0 16 16.3A9 9 0 0 0 19.5 10A9 9 0 0 0 16 3.7Z" fill="#FF5F00"/>
+                    </svg>
+                  </div>
+
+                  {/* COD */}
+                  <div
+                    title="Thanh toán khi nhận hàng (COD)"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ fontSize: '12px' }}>💵</span>
+                    <span style={{ fontWeight: '800', fontSize: '11px', color: '#059669' }}>COD</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Payment Partners */}
+              {/* Shipping Partner Logos */}
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>Phương thức thanh toán</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a' }}>COD (Tiền mặt)</span>
-                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#2563eb' }}>VNPAY QR</span>
-                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', backgroundColor: '#fdf2f8', color: '#db2777' }}>MoMo</span>
-                  <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', backgroundColor: '#f8fafc', color: '#0f172a', border: '1px solid #e2e8f0' }}>Visa / Master</span>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '8px' }}>
+                  Đối tác vận chuyển
                 </div>
-              </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* GHN */}
+                  <div
+                    title="Giao Hàng Nhanh (GHN Express)"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #fed7aa',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ background: '#f97316', color: '#ffffff', fontWeight: '900', fontSize: '9px', padding: '1px 4px', borderRadius: '3px' }}>GHN</span>
+                    <span style={{ fontWeight: '700', fontSize: '10.5px', color: '#c2410c' }}>Express</span>
+                  </div>
 
-              {/* Shipping Partners */}
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>Đối tác vận chuyển</div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <span>Giao Hàng Nhanh</span> • <span>Viettel Post</span> • <span>J&T Express</span>
+                  {/* Viettel Post */}
+                  <div
+                    title="Tổng Công ty Cổ phần Bưu chính Viettel (Viettel Post)"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #fecaca',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ background: '#ee0033', color: '#ffffff', fontWeight: '900', fontSize: '9px', padding: '1px 4px', borderRadius: '3px' }}>VT</span>
+                    <span style={{ fontWeight: '700', fontSize: '10.5px', color: '#b91c1c' }}>Viettel Post</span>
+                  </div>
+
+                  {/* J&T Express */}
+                  <div
+                    title="Chuyển phát nhanh J&T Express"
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #fecaca',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      height: '28px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <span style={{ background: '#e60012', color: '#ffffff', fontWeight: '900', fontSize: '9px', padding: '1px 4px', borderRadius: '3px' }}>J&T</span>
+                    <span style={{ fontWeight: '700', fontSize: '10.5px', color: '#b91c1c' }}>Express</span>
+                  </div>
                 </div>
               </div>
             </div>
