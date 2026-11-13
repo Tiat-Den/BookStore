@@ -1,5 +1,11 @@
 $models = @("gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash")
-$apiKey = "AIzaSyD5r5sajnWEz2R8nXX15GHKstuo-DQF_Ho"
+# Lay API Key tu User Secrets hoac bien moi truong, khong hardcode vao source code
+$secretsPath = "$env:APPDATA\Microsoft\UserSecrets\f4b849f5-27b5-40f1-b05c-ba65df6b581c\secrets.json"
+$apiKey = $env:GEMINI_API_KEY
+if (-not $apiKey -and (Test-Path $secretsPath)) {
+    $secrets = Get-Content $secretsPath | ConvertFrom-Json
+    $apiKey = $secrets."GeminiSettings:ApiKey"
+}
 
 foreach ($m in $models) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()

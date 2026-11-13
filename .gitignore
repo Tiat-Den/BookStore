@@ -57,11 +57,15 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Local environment files (tránh lộ secrets)
+.env
 .env.local
 .env.*.local
 .env.development.local
 .env.test.local
 .env.production.local
+secrets.json
+appsettings.Production.json
+appsettings.Local.json
 
 # -------------------------------------------------------------------------
 # 3. Database & SQL Server Local Files

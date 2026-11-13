@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import chatService from '../services/chatService';
+import chatIcon from '../assets/chat-icon.png';
 
 export default function ChatWidget() {
   const { user } = useAuth();
@@ -256,10 +257,10 @@ export default function ChatWidget() {
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            width: '60px',
-            height: '60px',
+            width: '45px',
+            height: '45px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            background: 'linear-gradient(135deg, #7899e2 0%, #6785da 100%)',
             color: '#ffffff',
             border: 'none',
             boxShadow: '0 8px 24px rgba(37, 99, 235, 0.45)',
@@ -275,7 +276,7 @@ export default function ChatWidget() {
           onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           title="Trò chuyện với Trợ lý AI BookStore"
         >
-          <Sparkles size={28} />
+          <img src={chatIcon} alt="Chat" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
           {/* Chấm tròn xanh báo trạng thái hoạt động */}
           <span
             style={{
