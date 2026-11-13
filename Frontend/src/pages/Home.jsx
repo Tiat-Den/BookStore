@@ -256,7 +256,6 @@ export const Home = () => {
       <section className="container" style={{ marginBottom: '56px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
           <div>
-            <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Đặc Sắc</span>
             <h2 style={{ fontSize: '26px', fontWeight: '800' }}>Sách Nổi Bật Mới Nhất</h2>
           </div>
           <Link to="/books" style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
