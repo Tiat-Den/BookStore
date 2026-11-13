@@ -103,19 +103,37 @@ export const BookDetail = () => {
 
   return (
     <div className="container" style={{ padding: '32px 20px' }}>
-      <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm" style={{ marginBottom: '24px' }}>
-        <ArrowLeft size={16} /> Quay lại
-      </button>
+      {/* Breadcrumb & Back button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+        <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ArrowLeft size={16} /> Quay lại
+        </button>
+        <div style={{ fontSize: '13px', color: '#64748b' }}>
+          <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>Trang chủ</Link>
+          <span style={{ margin: '0 6px' }}>/</span>
+          <Link to="/books" style={{ color: '#64748b', textDecoration: 'none' }}>Sách</Link>
+          <span style={{ margin: '0 6px' }}>/</span>
+          <span style={{ color: '#2563eb', fontWeight: '600' }}>{book.title}</span>
+        </div>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '40px', alignItems: 'start' }}>
         {/* Left Column: Book Cover Image & Customer Reviews */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           {/* Book Cover Card */}
-          <div className="card" style={{ position: 'relative', padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="card" style={{ position: 'relative', padding: '32px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
             <img
               src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80'}
               alt={book.title}
-              style={{ width: '100%', maxWidth: '380px', maxHeight: '520px', objectFit: 'cover', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)' }}
+              style={{
+                width: '100%',
+                maxWidth: '340px',
+                maxHeight: '480px',
+                objectFit: 'contain',
+                borderRadius: '6px',
+                filter: 'drop-shadow(0 14px 28px rgba(15, 23, 42, 0.22)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.1))',
+                transition: 'transform 0.3s ease'
+              }}
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80';
@@ -315,6 +333,31 @@ export const BookDetail = () => {
                 {isWishlisted ? 'Đã yêu thích' : 'Yêu thích'}
               </span>
             </button>
+          </div>
+
+          {/* Trust Guarantees */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ShieldCheck size={20} color="#2563eb" />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>100% Sách Thật</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Đền 200% nếu sách giả</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Truck size={20} color="#059669" />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>Giao Toàn Quốc</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Freeship từ 300.000đ</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <RotateCcw size={20} color="#d97706" />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>Đổi Trả 7 Ngày</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Miễn phí nếu lỗi in ấn</div>
+              </div>
+            </div>
           </div>
 
           {/* Description */}
