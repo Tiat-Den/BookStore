@@ -169,9 +169,9 @@ public class UserService : IUserService
             return ApiResponse<bool>.Fail("Không tìm thấy người dùng.");
         }
 
-        if (!Enum.TryParse<UserStatus>(status, true, out var newStatus))
+        if (!Enum.TryParse<UserStatus>(status, true, out var newStatus) || newStatus == UserStatus.Inactive)
         {
-            return ApiResponse<bool>.Fail("Trạng thái không hợp lệ. Chỉ chấp nhận Active, Inactive, hoặc Locked.");
+            return ApiResponse<bool>.Fail("Trạng thái không hợp lệ. Chỉ chấp nhận Active hoặc Locked.");
         }
 
         user.Status = newStatus;
@@ -247,5 +247,89 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
 
         return await GetUserByIdAsync(user.Id);
+    }
+
+    public async Task<ApiResponse<bool>> DeleteUserAsync(Guid id, Guid currentUserId)
+    {
+        if (id == currentUserId)
+        {
+            return ApiResponse<bool>.Fail("Bạn không thể tự xóa tài khoản của chính mình.");
+        }
+
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+            .Include(u => u.Addresses)
+            .Include(u => u.Cart).ThenInclude(c => c!.Items)
+            .Include(u => u.Wishlist).ThenInclude(w => w!.Items)
+            .Include(u => u.Reviews)
+            .Include(u => u.Notifications)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+        {
+            return ApiResponse<bool>.Fail("Không tìm thấy người dùng.");
+        }
+
+        // Xóa các đơn hàng liên quan nếu có để tránh lỗi foreign key Restrict
+        var userOrders = await _context.Orders
+            .Include(o => o.Items)
+            .Include(o => o.Payments)
+            .Include(o => o.Shipment)
+            .Include(o => o.CouponUsages)
+            .Where(o => o.UserId == id)
+            .ToListAsync();
+
+        if (userOrders.Any())
+        {
+            _context.Orders.RemoveRange(userOrders);
+        }
+
+        // Xóa coupon usages trực tiếp nếu còn sót
+        var couponUsages = await _context.CouponUsages.Where(cu => cu.UserId == id).ToListAsync();
+        if (couponUsages.Any())
+        {
+            _context.CouponUsages.RemoveRange(couponUsages);
+        }
+
+        // Xóa reviews
+        if (user.Reviews.Any())
+        {
+            _context.Reviews.RemoveRange(user.Reviews);
+        }
+
+        // Xóa addresses
+        if (user.Addresses.Any())
+        {
+            _context.Addresses.RemoveRange(user.Addresses);
+        }
+
+        // Xóa cart
+        if (user.Cart != null)
+        {
+            _context.Carts.Remove(user.Cart);
+        }
+
+        // Xóa wishlist
+        if (user.Wishlist != null)
+        {
+            _context.Wishlists.Remove(user.Wishlist);
+        }
+
+        // Xóa notifications
+        if (user.Notifications.Any())
+        {
+            _context.Notifications.RemoveRange(user.Notifications);
+        }
+
+        // Xóa user roles
+        if (user.UserRoles.Any())
+        {
+            _context.UserRoles.RemoveRange(user.UserRoles);
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return ApiResponse<bool>.Ok(true, "Xóa tài khoản người dùng thành công.");
     }
 }

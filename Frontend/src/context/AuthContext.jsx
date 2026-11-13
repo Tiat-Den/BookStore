@@ -31,27 +31,37 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await authService.login(email, password);
-    if (res.success && res.data) {
-      setToken(res.data.token);
-      setUser(res.data.user);
-      localStorage.setItem('bookstore_token', res.data.token);
-      localStorage.setItem('bookstore_user', JSON.stringify(res.data.user));
-      return { success: true };
+    try {
+      const res = await authService.login(email, password);
+      if (res.success && res.data) {
+        setToken(res.data.token);
+        setUser(res.data.user);
+        localStorage.setItem('bookstore_token', res.data.token);
+        localStorage.setItem('bookstore_user', JSON.stringify(res.data.user));
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Đăng nhập thất bại' };
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Email hoặc mật khẩu không chính xác.';
+      return { success: false, message };
     }
-    return { success: false, message: res.message || 'Đăng nhập thất bại' };
   };
 
   const register = async (fullName, email, phone, password) => {
-    const res = await authService.register(fullName, email, phone, password);
-    if (res.success && res.data) {
-      setToken(res.data.token);
-      setUser(res.data.user);
-      localStorage.setItem('bookstore_token', res.data.token);
-      localStorage.setItem('bookstore_user', JSON.stringify(res.data.user));
-      return { success: true };
+    try {
+      const res = await authService.register(fullName, email, phone, password);
+      if (res.success && res.data) {
+        setToken(res.data.token);
+        setUser(res.data.user);
+        localStorage.setItem('bookstore_token', res.data.token);
+        localStorage.setItem('bookstore_user', JSON.stringify(res.data.user));
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Đăng ký thất bại' };
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Đăng ký tài khoản thất bại.';
+      return { success: false, message };
     }
-    return { success: false, message: res.message || 'Đăng ký thất bại' };
   };
 
   const logout = () => {

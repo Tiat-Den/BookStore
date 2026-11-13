@@ -29,6 +29,12 @@ builder.Services.AddScoped<BookStore.Application.Interfaces.ICouponService, Book
 builder.Services.AddScoped<BookStore.Application.Interfaces.IReportService, BookStore.Infrastructure.Services.ReportService>();
 builder.Services.AddScoped<BookStore.Application.Interfaces.IPaymentService, BookStore.Infrastructure.Services.PaymentService>();
 builder.Services.AddScoped<BookStore.Application.Interfaces.IUserService, BookStore.Infrastructure.Services.UserService>();
+builder.Services.AddScoped<BookStore.Application.Interfaces.IEmailService, BookStore.Infrastructure.Services.EmailService>();
+
+// AI & Chat Services
+builder.Services.AddHttpClient<BookStore.Application.Interfaces.IAiService, BookStore.Infrastructure.Services.GeminiAiService>();
+builder.Services.AddScoped<BookStore.Application.Interfaces.IBookSearchService, BookStore.Infrastructure.Services.BookSearchService>();
+builder.Services.AddScoped<BookStore.Application.Interfaces.IChatService, BookStore.Infrastructure.Services.ChatService>();
 
 // 3. Add Controllers
 builder.Services.AddControllers();

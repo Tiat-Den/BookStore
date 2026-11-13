@@ -157,10 +157,12 @@ public class ReportService : IReportService
 public class PaymentService : IPaymentService
 {
     private readonly BookStoreDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public PaymentService(BookStoreDbContext context)
+    public PaymentService(BookStoreDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<ApiResponse<string>> CreateVNPayPaymentUrlAsync(Guid orderId, string ipAddress)
@@ -181,6 +183,9 @@ public class PaymentService : IPaymentService
     {
         var order = await _context.Orders
             .Include(o => o.Payments)
+            .Include(o => o.Items)
+            .Include(o => o.Shipment)
+            .Include(o => o.User)
             .FirstOrDefaultAsync(o => o.Id == request.OrderId);
 
         if (order == null)
@@ -222,6 +227,30 @@ public class PaymentService : IPaymentService
             }
 
             await _context.SaveChangesAsync();
+
+            // Gửi email xác nhận thanh toán thành công
+            try
+            {
+                var targetEmail = order.User?.Email;
+                var customerName = order.Shipment?.ReceiverName ?? order.User?.FullName ?? "Quý khách";
+                if (!string.IsNullOrWhiteSpace(targetEmail))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await _emailService.SendOrderConfirmationEmailAsync(
+                            order,
+                            targetEmail,
+                            customerName,
+                            "Xác nhận thanh toán thành công"
+                        );
+                    });
+                }
+            }
+            catch
+            {
+                // Không gián đoạn kết quả trả về nếu gửi email gặp lỗi
+            }
+
             return ApiResponse<bool>.Ok(true, $"Thanh toán đơn hàng {order.OrderCode} thành công qua {request.PaymentMethod}.");
         }
         else

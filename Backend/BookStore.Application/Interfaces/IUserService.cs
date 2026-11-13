@@ -10,4 +10,5 @@ public interface IUserService
     Task<ApiResponse<UserDto>> CreateEmployeeAsync(CreateEmployeeDto request);
     Task<ApiResponse<UserDto>> UpdateUserAsync(Guid id, UpdateUserDto request, Guid currentUserId);
     Task<ApiResponse<bool>> UpdateUserStatusAsync(Guid id, string status, Guid currentUserId);
+    Task<ApiResponse<bool>> DeleteUserAsync(Guid id, Guid currentUserId);
 }

@@ -71,3 +71,43 @@ public class ChangePasswordRequestDto
     public string NewPassword { get; set; } = string.Empty;
 }
 
+public class ForgotPasswordRequestDto
+{
+    // Hỗ trợ nhập Email hoặc Số điện thoại
+    public string? Identifier { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+}
+
+public class ResetPasswordRequestDto
+{
+    public string? Identifier { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+
+    [Required(ErrorMessage = "Mã xác nhận (OTP) không được để trống")]
+    public string Otp { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Mật khẩu mới không được để trống")]
+    [MinLength(6, ErrorMessage = "Mật khẩu mới tối thiểu 6 ký tự")]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+public class ForgotPasswordResponseDto
+{
+    public string Target { get; set; } = string.Empty;
+    public string Method { get; set; } = "EMAIL"; // EMAIL hoặc PHONE
+    public string Message { get; set; } = string.Empty;
+    public string? DevOtp { get; set; }
+}
+
+public class VerifyOtpRequestDto
+{
+    public string? Identifier { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+
+    [Required(ErrorMessage = "Mã xác nhận (OTP) không được để trống")]
+    public string Otp { get; set; } = string.Empty;
+}
+

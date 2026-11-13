@@ -85,4 +85,14 @@ public class UsersController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(Guid id)
+    {
+        var result = await _userService.DeleteUserAsync(id, GetCurrentUserId());
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }

@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { Navbar, Footer } from './components/NavbarAndFooter';
 import { ProtectedRoute, ErrorBoundary } from './components/UIComponents';
+import ChatWidget from './components/ChatWidget';
 
 import { Home } from './pages/Home';
 import { Books } from './pages/Books';
@@ -16,8 +17,10 @@ import { Wishlist } from './pages/Wishlist';
 import { Profile } from './pages/Profile';
 import { TermsOfService, PrivacyPolicy, ShippingPolicy, PaymentGuide } from './pages/Policies';
 import { Login, Register } from './pages/AuthPages';
-import { AdminDashboard, AdminBooks, AdminOrders, AdminCoupons } from './pages/admin/AdminPages';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { AdminDashboard, AdminBooks, AdminCategories, AdminOrders, AdminCoupons } from './pages/admin/AdminPages';
 import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminChatbot } from './pages/admin/AdminChatbot';
 import { EmployeeDashboard } from './pages/employee/EmployeePages';
 
 // Tự động cuộn trang lên đầu mỗi khi chuyển route hoặc đổi danh mục / bộ lọc URL
@@ -85,6 +88,7 @@ export function App() {
                   {/* Auth Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
                   {/* Admin Only Routes */}
                   <Route path="/admin" element={
@@ -95,6 +99,11 @@ export function App() {
                   <Route path="/admin/books" element={
                     <ProtectedRoute requireManager={true}>
                       <AdminBooks />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/categories" element={
+                    <ProtectedRoute requireManager={true}>
+                      <AdminCategories />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/orders" element={
@@ -112,6 +121,11 @@ export function App() {
                       <AdminUsers />
                     </ProtectedRoute>
                   } />
+                  <Route path="/admin/chatbot" element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminChatbot />
+                    </ProtectedRoute>
+                  } />
 
                   {/* Employee Workspace Routes (requireManager={true}) */}
                   <Route path="/employee" element={
@@ -124,6 +138,11 @@ export function App() {
                       <AdminBooks />
                     </ProtectedRoute>
                   } />
+                  <Route path="/employee/categories" element={
+                    <ProtectedRoute requireManager={true}>
+                      <AdminCategories />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/employee/orders" element={
                     <ProtectedRoute requireManager={true}>
                       <AdminOrders />
@@ -134,6 +153,7 @@ export function App() {
             </main>
 
             <Footer />
+            <ChatWidget />
           </div>
         </BrowserRouter>
         </WishlistProvider>

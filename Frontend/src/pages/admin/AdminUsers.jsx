@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, UserPlus, Lock, Unlock, Shield, Search, CheckCircle, AlertTriangle, X, Edit } from 'lucide-react';
+import { Users, UserPlus, Lock, Unlock, Shield, Search, CheckCircle, AlertTriangle, X, Edit, Trash2 } from 'lucide-react';
 import { userService } from '../../services/catalogAndOrderServices';
 import { useAuth } from '../../context/AuthContext';
 import { LoadingSpinner } from '../../components/UIComponents';
@@ -132,6 +132,30 @@ export const AdminUsers = () => {
       }
     } catch (err) {
       setMsg({ text: err.message || 'Lỗi khi cập nhật trạng thái tài khoản.', type: 'error' });
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (user.id === currentUser?.id) {
+      alert('Bạn không thể tự xóa tài khoản của chính mình!');
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      `Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản "${user.fullName}" (${user.email})?\n\nLƯU Ý: Thao tác này sẽ xóa toàn bộ dữ liệu liên quan và không thể khôi phục!`
+    );
+    if (!isConfirmed) return;
+
+    try {
+      const res = await userService.deleteUser(user.id);
+      if (res.success) {
+        setMsg({ text: `Đã xóa tài khoản "${user.fullName}" thành công!`, type: 'success' });
+        fetchUsers();
+      } else {
+        setMsg({ text: res.message || 'Không thể xóa tài khoản này.', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err.message || 'Lỗi khi xóa tài khoản.', type: 'error' });
     }
   };
 
@@ -275,6 +299,16 @@ export const AdminUsers = () => {
                               title={isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
                             >
                               {isLocked ? <><Unlock size={14} /> Mở khóa</> : <><Lock size={14} /> Khóa</>}
+                            </button>
+                          )}
+                          {!isCurrent && (
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              className="btn btn-sm"
+                              style={{ padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fee2e2', color: 'var(--danger)', border: '1px solid #fecaca' }}
+                              title="Xóa tài khoản vĩnh viễn"
+                            >
+                              <Trash2 size={14} /> Xóa
                             </button>
                           )}
                         </div>
@@ -459,7 +493,6 @@ export const AdminUsers = () => {
                     >
                       <option value="Active">Hoạt động (Active)</option>
                       <option value="Locked">Đã khóa (Locked)</option>
-                      <option value="Inactive">Tạm ngưng (Inactive)</option>
                     </select>
                   </div>
                 </div>

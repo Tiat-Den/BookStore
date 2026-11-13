@@ -10,5 +10,8 @@ public interface IAuthService
     Task<ApiResponse<UserProfileDto>> GetProfileAsync(Guid userId);
     Task<ApiResponse<UserProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequestDto request);
     Task<ApiResponse<bool>> ChangePasswordAsync(Guid userId, ChangePasswordRequestDto request);
+    Task<ApiResponse<ForgotPasswordResponseDto>> ForgotPasswordAsync(ForgotPasswordRequestDto request);
+    Task<ApiResponse<bool>> VerifyOtpAsync(VerifyOtpRequestDto request);
+    Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordRequestDto request);
 }
 

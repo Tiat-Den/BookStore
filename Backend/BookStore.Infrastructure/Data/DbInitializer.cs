@@ -427,5 +427,54 @@ public static class DbInitializer
             context.Coupons.AddRange(coupons);
             await context.SaveChangesAsync();
         }
+
+        // 8. Sample Policies for AI Chatbox
+        if (!await context.PolicyDocuments.AnyAsync())
+        {
+            var policies = new List<PolicyDocument>
+            {
+                new()
+                {
+                    Title = "Chính sách Đổi trả và Hoàn tiền",
+                    Category = "Return",
+                    Status = "Approved",
+                    Content = "Khách hàng được quyền đổi trả sách trong vòng 7 ngày kể từ khi nhận hàng nếu sách bị lỗi in ấn, rách trang hoặc giao sai sản phẩm. Sách đổi trả phải còn nguyên vẹn, không có dấu hiệu tẩy xóa hay qua sử dụng. Chi phí vận chuyển đổi trả do cửa hàng chi trả nếu lỗi từ phía nhà sách.",
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new()
+                {
+                    Title = "Chính sách Vận chuyển và Giao hàng",
+                    Category = "Shipping",
+                    Status = "Approved",
+                    Content = "Cửa hàng giao hàng toàn quốc qua các đơn vị vận chuyển uy tín (GHTK, GHN, Viettel Post). Thời gian giao hàng nội thành Hà Nội và TP.HCM từ 1-2 ngày, các tỉnh thành khác từ 3-4 ngày làm việc. Đơn hàng từ 250.000đ được miễn phí vận chuyển toàn quốc.",
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new()
+                {
+                    Title = "Phương thức Thanh toán",
+                    Category = "Payment",
+                    Status = "Approved",
+                    Content = "Cửa hàng hỗ trợ các phương thức thanh toán linh hoạt: Thanh toán khi nhận hàng (COD), Chuyển khoản ngân hàng trực tiếp (VietQR), và Thanh toán thẻ ngân hàng/Ví điện tử.",
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
+
+            context.PolicyDocuments.AddRange(policies);
+            await context.SaveChangesAsync();
+        }
+
+        // 9. Default Chatbot Settings
+        if (!await context.ChatSettings.AnyAsync())
+        {
+            var defaultSetting = new ChatSetting
+            {
+                IsEnabled = true,
+                WelcomeMessage = "Xin chào! Mình là trợ lý AI của BookStore. Mình có thể giúp bạn tìm sách, xem giỏ hàng hoặc tra cứu chính sách mua hàng nhé!",
+                SystemNotice = "",
+                UpdatedAt = DateTime.UtcNow
+            };
+            context.ChatSettings.Add(defaultSetting);
+            await context.SaveChangesAsync();
+        }
     }
 }

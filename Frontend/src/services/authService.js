@@ -19,6 +19,18 @@ export const authService = {
 
   changePassword: async (currentPassword, newPassword) => {
     return await apiClient.post('/auth/change-password', { currentPassword, newPassword });
+  },
+
+  forgotPassword: async (identifier) => {
+    return await apiClient.post('/auth/forgot-password', { identifier });
+  },
+
+  verifyOtp: async (identifier, otp) => {
+    return await apiClient.post('/auth/verify-otp', { identifier, otp });
+  },
+
+  resetPassword: async (identifier, otp, newPassword) => {
+    return await apiClient.post('/auth/reset-password', { identifier, otp, newPassword });
   }
 };
 

@@ -16,13 +16,17 @@ export const Login = () => {
     setError('');
     setLoading(true);
 
-    const res = await login(email, password);
-    setLoading(false);
-
-    if (res.success) {
-      navigate('/');
-    } else {
-      setError(res.message);
+    try {
+      const res = await login(email, password);
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.message || 'Email hoặc mật khẩu không chính xác.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Email hoặc mật khẩu không chính xác.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,9 +91,15 @@ export const Login = () => {
           >
             {loading ? 'Đang xác thực...' : 'Đăng Nhập'}
           </button>
+
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Link to="/forgot-password" style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600', textDecoration: 'none' }}>
+              Quên mật khẩu?
+            </Link>
+          </div>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>
           Chưa có tài khoản?{' '}
           <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '700' }}>
             Đăng ký ngay
@@ -123,13 +133,17 @@ export const Register = () => {
     }
 
     setLoading(true);
-    const res = await register(formData.fullName, formData.email, formData.phone, formData.password);
-    setLoading(false);
-
-    if (res.success) {
-      navigate('/');
-    } else {
-      setError(res.message);
+    try {
+      const res = await register(formData.fullName, formData.email, formData.phone, formData.password);
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.message || 'Đăng ký tài khoản không thành công.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Đăng ký tài khoản không thành công.');
+    } finally {
+      setLoading(false);
     }
   };
 

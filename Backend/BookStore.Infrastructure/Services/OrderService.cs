@@ -11,10 +11,12 @@ namespace BookStore.Infrastructure.Services;
 public class OrderService : IOrderService
 {
     private readonly BookStoreDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public OrderService(BookStoreDbContext context)
+    public OrderService(BookStoreDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<ApiResponse<OrderDto>> CreateOrderAsync(Guid userId, CreateOrderDto request)
@@ -230,6 +232,32 @@ public class OrderService : IOrderService
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            // Gửi email xác nhận đặt hàng nếu thanh toán khi nhận hàng (COD)
+            if (order.PaymentMethod?.ToUpper() == "COD")
+            {
+                try
+                {
+                    var targetEmail = user.Email;
+                    var customerName = order.Shipment?.ReceiverName ?? user.FullName;
+                    if (!string.IsNullOrWhiteSpace(targetEmail))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            await _emailService.SendOrderConfirmationEmailAsync(
+                                order,
+                                targetEmail,
+                                customerName,
+                                "Xác nhận đặt hàng thành công (COD)"
+                            );
+                        });
+                    }
+                }
+                catch
+                {
+                    // Không chặn response nếu gửi mail thất bại
+                }
+            }
+
             return await GetOrderByIdAsync(order.Id, userId);
         }
         catch (Exception ex)
@@ -313,7 +341,13 @@ public class OrderService : IOrderService
 
     public async Task<ApiResponse<OrderDto>> UpdateOrderStatusAsync(Guid orderId, UpdateOrderStatusDto request, Guid currentUserId)
     {
-        var order = await _context.Orders.Include(o => o.Shipment).FirstOrDefaultAsync(o => o.Id == orderId);
+        var order = await _context.Orders
+            .Include(o => o.Shipment)
+            .Include(o => o.Items)
+            .Include(o => o.Payments)
+            .Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
         if (order == null)
         {
             return ApiResponse<OrderDto>.Fail("Không tìm thấy đơn hàng.");
@@ -382,6 +416,33 @@ public class OrderService : IOrderService
         });
 
         await _context.SaveChangesAsync();
+
+        // Gửi email xác nhận giao hàng & thanh toán thành công nếu đơn hàng vừa hoàn tất giao (DELIVERED)
+        if (newStatus == OrderStatusConstants.Delivered)
+        {
+            try
+            {
+                var targetEmail = order.User?.Email;
+                var customerName = order.Shipment?.ReceiverName ?? order.User?.FullName ?? "Quý khách";
+                if (!string.IsNullOrWhiteSpace(targetEmail))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await _emailService.SendOrderConfirmationEmailAsync(
+                            order,
+                            targetEmail,
+                            customerName,
+                            "Xác nhận giao hàng & thanh toán thành công"
+                        );
+                    });
+                }
+            }
+            catch
+            {
+                // Không chặn response nếu gửi mail thất bại
+            }
+        }
+
         return await GetOrderByIdAsync(orderId, isManager: true);
     }
 

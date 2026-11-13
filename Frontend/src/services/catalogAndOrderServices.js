@@ -136,5 +136,8 @@ export const userService = {
   },
   updateStatus: async (id, status) => {
     return await apiClient.patch(`/users/${id}/status`, { status });
+  },
+  deleteUser: async (id) => {
+    return await apiClient.delete(`/users/${id}`);
   }
 };

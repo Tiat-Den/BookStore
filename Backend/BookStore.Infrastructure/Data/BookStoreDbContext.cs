@@ -36,6 +36,10 @@ public class BookStoreDbContext : DbContext
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<ChatConversation> ChatConversations => Set<ChatConversation>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<PolicyDocument> PolicyDocuments => Set<PolicyDocument>();
+    public DbSet<ChatSetting> ChatSettings => Set<ChatSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -282,6 +286,42 @@ public class BookStoreDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(e => e.User).WithMany(u => u.AuditLogs).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ChatConversation & ChatMessage
+        modelBuilder.Entity<ChatConversation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.UpdatedAt });
+            entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).IsRequired(false).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt });
+            entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Content).IsRequired();
+            entity.HasOne(e => e.Conversation).WithMany(c => c.Messages).HasForeignKey(e => e.ConversationId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PolicyDocument
+        modelBuilder.Entity<PolicyDocument>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Category).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+        });
+
+        // ChatSetting
+        modelBuilder.Entity<ChatSetting>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.WelcomeMessage).HasMaxLength(500);
+            entity.Property(e => e.SystemNotice).HasMaxLength(500);
         });
     }
 }

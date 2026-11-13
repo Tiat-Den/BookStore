@@ -84,10 +84,13 @@ export const ManagementHeader = ({ title, subtitle, activeTab, actionButton }) =
         <Link to={dashboardLink} className={`btn btn-sm ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-outline'}`}>
           Dashboard
         </Link>
-        <Link to="/admin/books" className={`btn btn-sm ${activeTab === 'books' ? 'btn-primary' : 'btn-outline'}`}>
+        <Link to={isAdmin ? "/admin/books" : "/employee/books"} className={`btn btn-sm ${activeTab === 'books' ? 'btn-primary' : 'btn-outline'}`}>
           Quản lý Sách
         </Link>
-        <Link to="/admin/orders" className={`btn btn-sm ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline'}`}>
+        <Link to={isAdmin ? "/admin/categories" : "/employee/categories"} className={`btn btn-sm ${activeTab === 'categories' ? 'btn-primary' : 'btn-outline'}`}>
+          Quản lý Danh Mục
+        </Link>
+        <Link to={isAdmin ? "/admin/orders" : "/employee/orders"} className={`btn btn-sm ${activeTab === 'orders' ? 'btn-primary' : 'btn-outline'}`}>
           Quản lý Đơn Hàng
         </Link>
         <Link to="/admin/coupons" className={`btn btn-sm ${activeTab === 'coupons' ? 'btn-primary' : 'btn-outline'}`}>
@@ -96,6 +99,11 @@ export const ManagementHeader = ({ title, subtitle, activeTab, actionButton }) =
         {isAdmin && (
           <Link to="/admin/users" className={`btn btn-sm ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`}>
             Quản lý Tài Khoản
+          </Link>
+        )}
+        {isAdmin && (
+          <Link to="/admin/chatbot" className={`btn btn-sm ${activeTab === 'chatbot' ? 'btn-primary' : 'btn-outline'}`}>
+            AI Chatbot
           </Link>
         )}
         {actionButton}
@@ -425,6 +433,7 @@ export const AdminDashboard = () => {
 
 export const AdminBooks = () => {
   const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingBookId, setEditingBookId] = useState(null);
@@ -432,6 +441,7 @@ export const AdminBooks = () => {
     isbn: '',
     title: '',
     authorName: '',
+    categoryId: '',
     salePrice: 100000,
     importPrice: 60000,
     discountPrice: 90000,
@@ -439,6 +449,26 @@ export const AdminBooks = () => {
     description: '',
     coverImageUrl: ''
   });
+
+  const fetchCategories = async () => {
+    try {
+      const res = await categoryService.getCategories(false);
+      if (res.success && res.data) {
+        const flat = [];
+        res.data.forEach(cat => {
+          flat.push(cat);
+          if (cat.subCategories && cat.subCategories.length > 0) {
+            cat.subCategories.forEach(sub => {
+              flat.push({ ...sub, isSub: true, parentName: cat.name });
+            });
+          }
+        });
+        setCategories(flat);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải danh mục:', err);
+    }
+  };
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -452,6 +482,7 @@ export const AdminBooks = () => {
 
   useEffect(() => {
     fetchBooks();
+    fetchCategories();
   }, []);
 
   const handleOpenCreate = () => {
@@ -460,6 +491,7 @@ export const AdminBooks = () => {
       isbn: '',
       title: '',
       authorName: '',
+      categoryId: categories.length > 0 ? categories[0].id : '',
       salePrice: 100000,
       importPrice: 60000,
       discountPrice: '',
@@ -473,10 +505,12 @@ export const AdminBooks = () => {
   const handleOpenEdit = (b) => {
     setEditingBookId(b.id);
     const currentAuthor = b.authors && b.authors.length > 0 ? b.authors.map(a => a.name).join(', ') : '';
+    const currentCatId = (b.categories && b.categories.length > 0 ? b.categories[0].id : '') || '';
     setFormData({
       isbn: b.isbn || '',
       title: b.title || '',
       authorName: currentAuthor,
+      categoryId: currentCatId,
       salePrice: b.salePrice ?? 0,
       importPrice: b.importPrice ?? 0,
       discountPrice: b.discountPrice ?? '',
@@ -496,6 +530,7 @@ export const AdminBooks = () => {
       importPrice: Number(formData.importPrice) || 0,
       discountPrice: formData.discountPrice !== '' && formData.discountPrice !== null ? Number(formData.discountPrice) : null,
       stockQuantity: Number(formData.stockQuantity) || 0,
+      categoryIds: formData.categoryId ? [formData.categoryId] : [],
       status: formData.status ?? 1
     };
 
@@ -558,6 +593,7 @@ export const AdminBooks = () => {
                 <tr>
                   <th>Sách</th>
                   <th>Tác Giả</th>
+                  <th>Danh Mục</th>
                   <th>ISBN</th>
                   <th>Giá Bán</th>
                   <th>Giá Khuyến Mãi</th>
@@ -586,6 +622,11 @@ export const AdminBooks = () => {
                     <td>
                       <span style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: '600' }}>
                         {b.authors && b.authors.length > 0 ? b.authors.map(a => a.name).join(', ') : 'Chưa có'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="badge badge-neutral" style={{ fontWeight: '600', fontSize: '12px' }}>
+                        {b.categories && b.categories.length > 0 ? b.categories.map(c => c.name).join(', ') : 'Chưa phân loại'}
                       </span>
                     </td>
                     <td>{b.isbn}</td>
@@ -646,6 +687,23 @@ export const AdminBooks = () => {
                     value={formData.authorName}
                     onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
                   />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Danh mục sách *</label>
+                  <select
+                    className="select"
+                    required
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  >
+                    <option value="">-- Chọn danh mục sách --</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.isSub ? `— ${c.name} (Thuộc: ${c.parentName})` : c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -732,6 +790,354 @@ export const AdminBooks = () => {
                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">Hủy</button>
                 <button type="submit" className="btn btn-primary">
                   {editingBookId ? 'Cập Nhật' : 'Lưu Sách'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const AdminCategories = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    parentId: '',
+    description: '',
+    isActive: true
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const res = await categoryService.getCategories(false);
+      if (res.success && res.data) {
+        const flat = [];
+        res.data.forEach(parent => {
+          flat.push({ ...parent, isRoot: true });
+          if (parent.subCategories && parent.subCategories.length > 0) {
+            parent.subCategories.forEach(sub => {
+              flat.push({ ...sub, isRoot: false, parentName: parent.name });
+            });
+          }
+        });
+        setCategories(flat);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải danh mục:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleOpenCreate = () => {
+    setEditingCategory(null);
+    setFormData({
+      name: '',
+      parentId: '',
+      description: '',
+      isActive: true
+    });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (cat) => {
+    setEditingCategory(cat);
+    setFormData({
+      name: cat.name || '',
+      parentId: cat.parentId || '',
+      description: cat.description || '',
+      isActive: cat.isActive ?? true
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert('Vui lòng nhập tên danh mục.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        name: formData.name.trim(),
+        parentId: formData.parentId ? formData.parentId : null,
+        description: formData.description ? formData.description.trim() : null,
+        isActive: Boolean(formData.isActive)
+      };
+
+      let res;
+      if (editingCategory) {
+        res = await categoryService.updateCategory(editingCategory.id, payload);
+      } else {
+        res = await categoryService.createCategory(payload);
+      }
+
+      if (res.success) {
+        alert(editingCategory ? 'Cập nhật danh mục thành công!' : 'Tạo mới danh mục thành công!');
+        setShowModal(false);
+        fetchCategories();
+      } else {
+        alert(res.message || 'Thao tác không thành công.');
+      }
+    } catch (err) {
+      alert(err.message || 'Lỗi xử lý yêu cầu.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (cat) => {
+    if (cat.bookCount > 0) {
+      alert(`Không thể xóa danh mục "${cat.name}" vì hiện đang có ${cat.bookCount} sách liên kết.`);
+      return;
+    }
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${cat.name}" không?`)) {
+      return;
+    }
+
+    try {
+      const res = await categoryService.deleteCategory(cat.id);
+      if (res.success) {
+        alert('Xóa danh mục thành công!');
+        fetchCategories();
+      } else {
+        alert(res.message || 'Không thể xóa danh mục.');
+      }
+    } catch (err) {
+      alert(err.message || 'Lỗi khi xóa danh mục.');
+    }
+  };
+
+  const rootCategories = categories.filter(c => c.isRoot && (!editingCategory || c.id !== editingCategory.id));
+
+  const filteredCategories = categories.filter(c => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(term) ||
+      (c.slug && c.slug.toLowerCase().includes(term)) ||
+      (c.description && c.description.toLowerCase().includes(term)) ||
+      (c.parentName && c.parentName.toLowerCase().includes(term))
+    );
+  });
+
+  const totalCategories = categories.length;
+  const activeCount = categories.filter(c => c.isActive).length;
+  const totalBooksCount = categories.reduce((sum, c) => sum + (c.bookCount || 0), 0);
+
+  return (
+    <div className="container" style={{ padding: '36px 20px' }}>
+      <ManagementHeader
+        title="Quản Lý Danh Mục"
+        activeTab="categories"
+      />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>
+          Tổng số danh mục: <strong>{categories.length}</strong>
+        </div>
+        <button 
+          onClick={handleOpenCreate} 
+          className="btn btn-primary" 
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 18px', fontWeight: '600' }}
+        >
+          <Plus size={16} /> Thêm Danh Mục Mới
+        </button>
+      </div>
+
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+          <div className="table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Tên Danh Mục</th>
+                  <th>Mã Đường Dẫn (Slug)</th>
+                  <th>Danh Mục Cha</th>
+                  <th>Số Lượng Sách</th>
+                  <th>Mô Tả</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.length > 0 ? (
+                  categories.map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        <strong style={{ fontSize: '14px' }}>
+                          {c.isRoot ? c.name : `— ${c.name}`}
+                        </strong>
+                        {!c.isRoot && (
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: '500', marginLeft: '6px' }}>
+                            Danh mục con
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <code style={{ fontSize: '12px', background: '#f8fafc', padding: '3px 6px', borderRadius: '4px', border: '1px solid #e2e8f0', color: '#0f172a' }}>
+                          {c.slug}
+                        </code>
+                      </td>
+                      <td>
+                        {c.parentName ? (
+                          <span className="badge badge-neutral" style={{ fontWeight: '500' }}>
+                            {c.parentName}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>— Gốc</span>
+                        )}
+                      </td>
+                      <td>
+                        <strong>{c.bookCount || 0}</strong>
+                      </td>
+                      <td style={{ maxWidth: '280px' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          {c.description || '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${c.isActive ? 'badge-success' : 'badge-danger'}`} style={{ fontWeight: '600' }}>
+                          {c.isActive ? 'Hoạt động' : 'Tạm ẩn'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => handleOpenEdit(c)}
+                            className="btn btn-outline btn-sm"
+                            title="Chỉnh sửa danh mục"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c)}
+                            className="btn btn-danger btn-sm"
+                            title="Xóa danh mục"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                      Chưa có danh mục nào trong hệ thống.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Add / Edit Category */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '18px', fontWeight: '700' }}>
+                {editingCategory ? 'Chỉnh Sửa Danh Mục' : 'Thêm Danh Mục Mới'}
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Tên danh mục *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    required
+                    placeholder="VD: Khoa Học Viễn Tưởng, Tâm Lý Học..."
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Thuộc danh mục cha</label>
+                  <select
+                    className="select"
+                    value={formData.parentId}
+                    onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  >
+                    <option value="">-- Danh mục gốc (Không có cha) --</option>
+                    {rootCategories.map((rc) => (
+                      <option key={rc.id} value={rc.id}>
+                        {rc.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Để trống nếu muốn danh mục này hiển thị như một chuyên mục lớn chính.
+                  </small>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Mô tả danh mục</label>
+                  <textarea
+                    className="textarea"
+                    rows="3"
+                    placeholder="Mô tả nội dung hoặc định hướng của danh mục sách này..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: '600' }}>Kích hoạt (Hiển thị ngoài trang chủ & menu)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="btn btn-outline"
+                  disabled={submitting}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Đang lưu...' : (editingCategory ? 'Cập Nhật' : 'Lưu Danh Mục')}
                 </button>
               </div>
             </form>
