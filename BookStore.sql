@@ -703,48 +703,51 @@ BEGIN
 END
 
 -- 4. Khởi tạo Thể loại sách (Categories)
+DECLARE @CatChinhTriId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444440';
 DECLARE @CatVanHocId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444441';
-DECLARE @CatKinhTeId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444442';
-DECLARE @CatKyNangId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444443';
+DECLARE @CatKyNangId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444442';
+DECLARE @CatTheThaoId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444443';
 DECLARE @CatCongNgheId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444444';
-DECLARE @CatThieuNhiId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444445';
-DECLARE @CatGiaoDucId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444446';
+DECLARE @CatKinhTeId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444445';
+DECLARE @CatThieuNhiId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444446';
+DECLARE @CatGiaoDucId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444447';
+DECLARE @CatLichSuId UNIQUEIDENTIFIER = '44444444-4444-4444-4444-444444444448';
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'chinh-tri---triet-hoc')
+    INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
+    VALUES (@CatChinhTriId, N'Chính trị – Triết học', 'chinh-tri---triet-hoc', N'Tác phẩm lý luận chính trị, tư tưởng triết học phương Đông - phương Tây và pháp luật đương đại', 1, SYSUTCDATETIME());
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'van-hoc')
     INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatVanHocId, N'Văn học', 'van-hoc', N'Tiểu thuyết, truyện ngắn, thơ ca', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatVanHocId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'van-hoc';
-
-IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'kinh-te')
-    INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatKinhTeId, N'Kinh tế', 'kinh-te', N'Quản trị kinh doanh, tài chính, marketing', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatKinhTeId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'kinh-te';
+    VALUES (@CatVanHocId, N'Văn học', 'van-hoc', N'Tiểu thuyết kinh điển, văn học đương đại, truyện ngắn, tản văn và thơ ca chọn lọc', 1, SYSUTCDATETIME());
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'ky-nang-song')
     INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatKyNangId, N'Kỹ năng sống', 'ky-nang-song', N'Phát triển bản thân, tư duy, tâm lý', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatKyNangId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'ky-nang-song';
+    VALUES (@CatKyNangId, N'Kỹ năng – Tâm lý', 'ky-nang-song', N'Phát triển bản thân, tâm lý học ứng dụng, tư duy tích cực, nghệ thuật giao tiếp và thành công', 1, SYSUTCDATETIME());
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'the-thao')
+    INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
+    VALUES (@CatTheThaoId, N'Thể thao', 'the-thao', N'Cẩm nang rèn luyện thể chất, hồi ký thể thao, chiến thuật thi đấu và dinh dưỡng sức khỏe', 1, SYSUTCDATETIME());
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'cong-nghe')
     INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatCongNgheId, N'Công nghệ', 'cong-nghe', N'Lập trình, CNTT, AI, phần cứng', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatCongNgheId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'cong-nghe';
+    VALUES (@CatCongNgheId, N'Khoa học – Kỹ thuật', 'cong-nghe', N'Khoa học tự nhiên, y học đời sống, công nghệ thông tin, trí tuệ nhân tạo (AI) và kỹ thuật ứng dụng', 1, SYSUTCDATETIME());
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'kinh-te')
+    INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
+    VALUES (@CatKinhTeId, N'Kinh tế – Quản trị', 'kinh-te', N'Quản trị doanh nghiệp, tài chính đầu tư, khởi nghiệp, marketing và xu hướng kinh tế toàn cầu', 1, SYSUTCDATETIME());
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'thieu-nhi')
     INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatThieuNhiId, N'Thiếu nhi', 'thieu-nhi', N'Truyện tranh, cổ tích, khoa học nhí', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatThieuNhiId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'thieu-nhi';
+    VALUES (@CatThieuNhiId, N'Thiếu nhi', 'thieu-nhi', N'Truyện tranh, cổ tích, ngụ ngôn, bách khoa tri thức và sách rèn luyện tư duy cho trẻ em', 1, SYSUTCDATETIME());
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'giao-duc')
     INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
-    VALUES (@CatGiaoDucId, N'Giáo dục', 'giao-duc', N'Sách giáo khoa, luyện thi, ngoại ngữ', 1, SYSUTCDATETIME());
-ELSE
-    SELECT @CatGiaoDucId = [Id] FROM [dbo].[Categories] WHERE [Slug] = 'giao-duc';
+    VALUES (@CatGiaoDucId, N'Giáo dục', 'giao-duc', N'Giáo trình học thuật, sách tham khảo, tài liệu luyện thi và cẩm nang học ngoại ngữ', 1, SYSUTCDATETIME());
+
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Categories] WHERE [Slug] = 'lich-su---van-hoa')
+    INSERT INTO [dbo].[Categories] ([Id], [Name], [Slug], [Description], [IsActive], [CreatedAt])
+    VALUES (@CatLichSuId, N'Lịch sử – Văn hóa', 'lich-su---van-hoa', N'Biên niên sử Việt Nam và thế giới, khảo cứu văn hóa truyền thống và các nền văn minh nhân loại', 1, SYSUTCDATETIME());
 
 -- 5. Khởi tạo Nhà xuất bản (Publishers)
 DECLARE @PubNxbTreId UNIQUEIDENTIFIER = '55555555-5555-5555-5555-555555555551';

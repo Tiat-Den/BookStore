@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import bookStoreLogo from '../assets/book-store-logo.png';
 
 export const Navbar = () => {
   const { user, isAuthenticated, isManager, isAdmin, logout } = useAuth();
@@ -55,14 +56,20 @@ export const Navbar = () => {
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '72px', gap: '20px' }}>
         
         {/* Brand Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-            <BookOpen size={22} />
-          </div>
-          <div>
-            <span style={{ fontSize: '20px', fontWeight: '800', color: 'var(--primary)', letterSpacing: '-0.5px' }}>BookStore</span>
-            <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', marginTop: '-4px', fontWeight: '500' }}>Sách Cho Mọi Nhà</span>
-          </div>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', padding: '2px 0' }}>
+          <img 
+            src={bookStoreLogo} 
+            alt="BOOK STORE" 
+            style={{ 
+              height: '46px', 
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block',
+              transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+            }} 
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          />
         </Link>
 
         {/* Search Bar */}
@@ -492,11 +499,19 @@ export const Footer = () => {
       <div className="container">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '32px', marginBottom: '40px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <div style={{ background: 'var(--primary)', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <BookOpen size={18} />
-              </div>
-              <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--primary)' }}>BookStore</span>
+            <div style={{ marginBottom: '14px' }}>
+              <Link to="/" style={{ display: 'inline-block' }}>
+                <img 
+                  src={bookStoreLogo} 
+                  alt="BOOK STORE" 
+                  style={{ 
+                    height: '40px', 
+                    width: 'auto',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }} 
+                />
+              </Link>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
               Hệ thống bán sách trực tuyến uy tín hàng đầu. Cam kết 100% sách chính hãng, hỗ trợ giao hàng nhanh và đổi trả thuận tiện.

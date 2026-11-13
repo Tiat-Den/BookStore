@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <!-- Mask to create the clean gap between front and back bubble -->
+    <mask id="cutout">
+      <rect width="100" height="100" fill="white" />
+      <!-- Cutout area for front bubble + gap -->
+      <path d="M 27 38 
+               A 11 11 0 0 1 38 27 
+               H 86 
+               A 11 11 0 0 1 97 38 
+               V 68 
+               A 11 11 0 0 1 86 79 
+               H 75 
+               L 96 95 
+               L 92 79 
+               H 38 
+               A 11 11 0 0 1 27 68 
+               Z" 
+            fill="black" 
+            stroke="black" 
+            stroke-width="5" 
+            stroke-linejoin="round" />
+    </mask>
+  </defs>
+
+  <!-- Back Bubble (masked to have a crisp cutout) -->
+  <g mask="url(#cutout)">
+    <path d="M 4 20 
+             A 10 10 0 0 1 14 10 
+             H 62 
+             A 10 10 0 0 1 72 20 
+             V 48 
+             A 10 10 0 0 1 62 58 
+             H 24 
+             L 4 72 
+             L 9 56 
+             A 10 10 0 0 1 4 48 
+             Z" 
+          fill="#0C4593" />
+  </g>
+
+  <!-- Front Bubble -->
+  <path d="M 30 40 
+           A 9 9 0 0 1 39 31 
+           H 87 
+           A 9 9 0 0 1 96 40 
+           V 68 
+           A 9 9 0 0 1 87 77 
+           H 79 
+           L 96 92 
+           L 90 77 
+           H 39 
+           A 9 9 0 0 1 30 68 
+           Z" 
+        fill="#0C4593" />
+
+  <!-- Text Lines in Front Bubble -->
+  <rect x="42" y="46" width="36" height="5.5" rx="2.75" fill="#ffffff" />
+  <rect x="42" y="57" width="24" height="5.5" rx="2.75" fill="#ffffff" />
+</svg>

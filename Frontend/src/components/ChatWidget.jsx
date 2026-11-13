@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import chatService from '../services/chatService';
-import chatIcon from '../assets/chat-icon.png';
+import chatIcon from '../assets/chat-icon.svg';
 
 export default function ChatWidget() {
   const { user } = useAuth();
@@ -257,13 +257,11 @@ export default function ChatWidget() {
             position: 'fixed',
             bottom: '24px',
             right: '24px',
-            width: '45px',
-            height: '45px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7899e2 0%, #6785da 100%)',
-            color: '#ffffff',
+            width: '54px',
+            height: '54px',
+            background: 'transparent',
             border: 'none',
-            boxShadow: '0 8px 24px rgba(37, 99, 235, 0.45)',
+            padding: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -271,23 +269,34 @@ export default function ChatWidget() {
             zIndex: 99999,
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             transform: 'scale(1)',
+            filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16))'
           }}
           onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
           onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
           title="Trò chuyện với Trợ lý AI BookStore"
         >
-          <img src={chatIcon} alt="Chat" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+          <img 
+            src={chatIcon} 
+            alt="Chat" 
+            style={{ 
+              width: '52px', 
+              height: '52px', 
+              objectFit: 'contain',
+              display: 'block'
+            }} 
+          />
           {/* Chấm tròn xanh báo trạng thái hoạt động */}
           <span
             style={{
               position: 'absolute',
-              top: '2px',
-              right: '2px',
+              top: '0px',
+              right: '0px',
               width: '14px',
               height: '14px',
               borderRadius: '50%',
               backgroundColor: botStatus.isEnabled ? '#22c55e' : '#ef4444',
-              border: '2px solid #ffffff'
+              border: '2px solid #ffffff',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.15)'
             }}
           />
         </button>
@@ -333,14 +342,15 @@ export default function ChatWidget() {
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#fef08a'
+                  padding: '4px'
                 }}
               >
-                <Sparkles size={20} />
+                <img src={chatIcon} alt="BookStore Support" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
               </div>
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', margin: 0, lineHeight: 1.2 }}>

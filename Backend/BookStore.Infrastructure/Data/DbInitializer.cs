@@ -175,12 +175,15 @@ public static class DbInitializer
         {
             var categories = new List<Category>
             {
-                new() { Name = "Văn học", Slug = "van-hoc", Description = "Tiểu thuyết, truyện ngắn, thơ ca" },
-                new() { Name = "Kinh tế", Slug = "kinh-te", Description = "Quản trị kinh doanh, tài chính, marketing" },
-                new() { Name = "Kỹ năng sống", Slug = "ky-nang-song", Description = "Phát triển bản thân, tư duy, tâm lý" },
-                new() { Name = "Công nghệ", Slug = "cong-nghe", Description = "Lập trình, CNTT, AI, phần cứng" },
-                new() { Name = "Thiếu nhi", Slug = "thieu-nhi", Description = "Truyện tranh, cổ tích, khoa học nhí" },
-                new() { Name = "Giáo dục", Slug = "giao-duc", Description = "Sách giáo khoa, luyện thi, ngoại ngữ" }
+                new() { Name = "Chính trị – Triết học", Slug = "chinh-tri---triet-hoc", Description = "Tác phẩm lý luận chính trị, tư tưởng triết học phương Đông - phương Tây và pháp luật đương đại" },
+                new() { Name = "Văn học", Slug = "van-hoc", Description = "Tiểu thuyết kinh điển, văn học đương đại, truyện ngắn, tản văn và thơ ca chọn lọc" },
+                new() { Name = "Kỹ năng – Tâm lý", Slug = "ky-nang-song", Description = "Phát triển bản thân, tâm lý học ứng dụng, tư duy tích cực, nghệ thuật giao tiếp và thành công" },
+                new() { Name = "Thể thao", Slug = "the-thao", Description = "Cẩm nang rèn luyện thể chất, hồi ký thể thao, chiến thuật thi đấu và dinh dưỡng sức khỏe" },
+                new() { Name = "Khoa học – Kỹ thuật", Slug = "cong-nghe", Description = "Khoa học tự nhiên, y học đời sống, công nghệ thông tin, trí tuệ nhân tạo (AI) và kỹ thuật ứng dụng" },
+                new() { Name = "Kinh tế – Quản trị", Slug = "kinh-te", Description = "Quản trị doanh nghiệp, tài chính đầu tư, khởi nghiệp, marketing và xu hướng kinh tế toàn cầu" },
+                new() { Name = "Thiếu nhi", Slug = "thieu-nhi", Description = "Truyện tranh, cổ tích, ngụ ngôn, bách khoa tri thức và sách rèn luyện tư duy cho trẻ em" },
+                new() { Name = "Giáo dục", Slug = "giao-duc", Description = "Giáo trình học thuật, sách tham khảo, tài liệu luyện thi và cẩm nang học ngoại ngữ" },
+                new() { Name = "Lịch sử – Văn hóa", Slug = "lich-su---van-hoa", Description = "Biên niên sử Việt Nam và thế giới, khảo cứu văn hóa truyền thống và các nền văn minh nhân loại" }
             };
 
             context.Categories.AddRange(categories);

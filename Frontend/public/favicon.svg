@@ -1,13 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 440" width="100%" height="100%">
   <defs>
-    <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bookeBlueFav" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#2563eb"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
   </defs>
-  <circle cx="32" cy="32" r="32" fill="url(#bookGradient)"/>
-  <g transform="translate(14, 14) scale(1.5)" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+
+  <!-- 1. 3D Isometric Top Cover & Pages -->
+  <g fill="url(#bookeBlueFav)">
+    <path d="M 104 122 L 496 35 L 496 52 L 126 135 L 126 150 L 104 144 Z" />
+    <path d="M 134 133 L 492 50 L 492 56 L 134 139 Z" fill="#ffffff" opacity="0.85" />
+  </g>
+
+  <!-- 2. Isometric 3D Body -->
+  <g transform="matrix(1, -0.22, 0, 1, 0, 75)" fill="url(#bookeBlueFav)">
+    <path d="M 104 70 C 52 70, 38 95, 38 138 C 38 180, 52 205, 104 205 Z" />
+    <text 
+      x="98" 
+      y="195" 
+      font-family="Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif" 
+      font-size="142" 
+      font-weight="900" 
+      textLength="396" 
+      lengthAdjust="spacingAndGlyphs"
+      fill="url(#bookeBlueFav)"
+    >BOOK</text>
+
+    <path d="M 104 225 C 52 225, 38 250, 38 293 C 38 335, 52 360, 104 360 Z" />
+    <text 
+      x="98" 
+      y="350" 
+      font-family="Impact, 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif" 
+      font-size="142" 
+      font-weight="900" 
+      textLength="396" 
+      lengthAdjust="spacingAndGlyphs"
+      fill="url(#bookeBlueFav)"
+    >STORE</text>
   </g>
 </svg>
