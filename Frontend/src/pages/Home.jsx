@@ -130,7 +130,7 @@ export const Home = () => {
               Khám Phá Tri Thức,<br />Nâng Tầm Tương Lai
             </h1>
             <p style={{ fontSize: '16px', color: '#cbd5e1', marginBottom: '32px', lineHeight: '1.6', maxWidth: '540px' }}>
-              Tập hợp hơn 150+ đầu sách chọn lọc từ 9 danh mục chuyên sâu: Văn học, Kinh tế, Công nghệ, Lịch sử... Đầy đủ bản quyền, cam kết 100% sách thật.
+              Tập hợp các tác phẩm sách chọn lọc từ 9 danh mục chuyên sâu: Văn học, Kinh tế, Công nghệ, Lịch sử... Đầy đủ bản quyền, cam kết 100% sách thật.
             </p>
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
               <Link to="/books" className="btn btn-secondary btn-lg" style={{ backgroundColor: '#ffffff', color: '#1e3a8a', fontWeight: '700', boxShadow: '0 4px 14px rgba(0,0,0,0.2)' }}>
@@ -395,9 +395,6 @@ export const Home = () => {
                 </div>
                 <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#1e293b', lineHeight: 1.3 }}>
                   {cat.name}
-                </span>
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>
-                  {cat.bookCount || 0} tác phẩm
                 </span>
               </Link>
             );

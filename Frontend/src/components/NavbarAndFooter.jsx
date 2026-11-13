@@ -212,11 +212,6 @@ export const Navbar = () => {
                         <span style={{ fontSize: '18px' }}>{c.icon || '📚'}</span>
                         <span>{c.name}</span>
                       </span>
-                      {c.bookCount !== undefined && (
-                        <span style={{ fontSize: '12px', color: 'var(--text-light)', fontWeight: '500' }}>
-                          {c.bookCount} sách
-                        </span>
-                      )}
                     </Link>
                   ))}
                 </div>

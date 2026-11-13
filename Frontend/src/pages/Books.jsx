@@ -149,7 +149,7 @@ export const Books = () => {
               {activeCategory ? activeCategory.name : 'Tất Cả Sách Chọn Lọc'}
             </h1>
             <p style={{ fontSize: '13.5px', color: '#64748b', margin: 0 }}>
-              Tìm thấy <strong style={{ color: '#0f172a' }}>{totalCount}</strong> tác phẩm bản quyền phù hợp
+              Các tác phẩm bản quyền chọn lọc
               {keyword && <span> cho từ khóa "<strong style={{ color: '#2563eb' }}>{keyword}</strong>"</span>}
             </p>
           </div>
@@ -249,12 +249,10 @@ export const Books = () => {
                     fontSize: '13px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <span>📚 Tất cả danh mục</span>
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>155</span>
                 </button>
 
                 {categories.map((c) => {
@@ -276,7 +274,6 @@ export const Books = () => {
                         fontSize: '13px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
                         transition: 'all 0.15s ease'
                       }}
                       onMouseEnter={(e) => {
@@ -288,9 +285,6 @@ export const Books = () => {
                     >
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>{icon}</span> {c.name}
-                      </span>
-                      <span style={{ fontSize: '11px', color: isSelected ? '#2563eb' : '#94a3b8' }}>
-                        {c.bookCount || 0}
                       </span>
                     </button>
                   );

@@ -63,8 +63,6 @@ export const ProductCard = ({ book }) => {
     ? Math.round(((book.salePrice - book.discountPrice) / book.salePrice) * 100)
     : 0;
 
-  // Pseudo-random but consistent sold count based on book id
-  const soldCount = book.soldQuantity || Math.max(12, ((book.id ? book.id.charCodeAt(0) * 13 : 42) % 180) + 25);
   const ratingVal = (4.8 + (((book.id ? book.id.charCodeAt(book.id.length - 1) : 5) % 3) * 0.1)).toFixed(1);
 
   return (
@@ -179,14 +177,10 @@ export const ProductCard = ({ book }) => {
         </h3>
       </Link>
 
-      {/* Rating & Sold count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#f59e0b', fontWeight: '700' }}>
-          <Star size={13} fill="#f59e0b" color="#f59e0b" />
-          <span>{ratingVal}</span>
-        </div>
-        <span style={{ color: '#cbd5e1' }}>•</span>
-        <span style={{ color: '#64748b' }}>Đã bán {soldCount}</span>
+      {/* Rating */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#f59e0b', fontWeight: '700', fontSize: '11.5px', marginBottom: '10px' }}>
+        <Star size={13} fill="#f59e0b" color="#f59e0b" />
+        <span>{ratingVal}</span>
       </div>
 
       {/* Price section & Action */}

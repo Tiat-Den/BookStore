@@ -272,7 +272,7 @@ export const BookDetail = () => {
                 >
                   {added ? (
                     <>
-                      <Check size={20} /> Đã thêm {quantity} cuốn vào giỏ
+                      <Check size={20} /> Đã thêm vào giỏ hàng
                     </>
                   ) : (
                     <>
