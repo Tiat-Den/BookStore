@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Tag, Check, X, Sparkles } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Tag, Check, X, Ticket, Gift, BookOpen } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { couponService } from '../services/marketingServices';
@@ -15,8 +15,16 @@ export const Cart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+
+  useEffect(() => {
+    couponService.getAvailableCoupons().then((list) => {
+      if (list && list.length > 0) setAvailableCoupons(list);
+    });
+  }, []);
 
   if (!isAuthenticated) {
     return (
@@ -45,7 +53,11 @@ export const Cart = () => {
 
   const handleApplyCoupon = async (e) => {
     if (e) e.preventDefault();
-    const code = couponInput.trim();
+    handleApplyCode(couponInput);
+  };
+
+  const handleApplyCode = async (codeToApply) => {
+    const code = (codeToApply || couponInput).trim().toUpperCase();
     if (!code) return;
 
     setValidatingCoupon(true);
@@ -58,7 +70,9 @@ export const Cart = () => {
           discountAmount: res.data.discountAmount,
           message: res.data.message || 'Áp dụng mã giảm giá thành công!'
         });
+        setCouponInput(res.data.code);
         setCouponError('');
+        setShowVoucherModal(false);
       } else {
         setAppliedCoupon(null);
         setCouponError(res.data?.message || res.message || 'Mã giảm giá không hợp lệ hoặc chưa đủ điều kiện.');
@@ -216,8 +230,28 @@ export const Cart = () => {
 
               {/* Voucher Input Box */}
               <div style={{ margin: '8px 0', borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0', padding: '14px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
-                  <Tag size={15} color="#2563eb" /> Mã Giảm Giá / Voucher
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>
+                    <Tag size={15} color="#2563eb" /> Mã Giảm Giá / Voucher
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowVoucherModal(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#2563eb',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Ticket size={14} /> Chọn mã ({availableCoupons.length})
+                  </button>
                 </div>
 
                 {appliedCoupon ? (
@@ -261,13 +295,13 @@ export const Cart = () => {
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <input
                         type="text"
-                        placeholder="Mã voucher (VD: BOOKSTORE50)"
+                        placeholder="Nhập mã (VD: BANMOI15)"
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            handleApplyCoupon();
+                            handleApplyCode(couponInput);
                           }
                         }}
                         style={{
@@ -282,7 +316,7 @@ export const Cart = () => {
                       />
                       <button
                         type="button"
-                        onClick={handleApplyCoupon}
+                        onClick={() => handleApplyCode(couponInput)}
                         disabled={validatingCoupon || !couponInput.trim()}
                         className="btn btn-primary btn-sm"
                         style={{ minWidth: '76px', fontWeight: '700' }}
@@ -297,8 +331,41 @@ export const Cart = () => {
                       </div>
                     )}
 
-                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '6px' }}>
-                      💡 Gợi ý: Nhập mã <strong style={{ color: '#2563eb' }}>BOOKSTORE50</strong> để giảm 50.000đ cho đơn từ 250k.
+                    {/* Quick suggestion voucher chips */}
+                    <div style={{ marginTop: '10px' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>Mã gợi ý cho bạn (bấm để áp dụng):</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                        {availableCoupons.slice(0, 4).map((c) => {
+                          const eligible = subTotal >= c.minimumOrderAmount;
+                          return (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onClick={() => handleApplyCode(c.code)}
+                              style={{
+                                border: eligible ? '1px dashed #2563eb' : '1px dashed #cbd5e1',
+                                background: eligible ? '#eff6ff' : '#f8fafc',
+                                color: eligible ? '#1d4ed8' : '#64748b',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                transition: 'all 0.15s ease'
+                              }}
+                              title={c.name}
+                            >
+                              <span>{c.code}</span>
+                              <span style={{ fontSize: '10px', fontWeight: '500', color: eligible ? '#059669' : '#94a3b8' }}>
+                                ({c.type === 'PERCENT' ? `-${c.value}%` : `-${Math.round(c.value / 1000)}k`})
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -317,6 +384,128 @@ export const Cart = () => {
             >
               Tiến hành Đặt Hàng <ArrowRight size={18} />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Voucher Selector Modal */}
+      {showVoucherModal && (
+        <div className="modal-overlay" onClick={() => setShowVoucherModal(false)}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '560px', width: '95%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', borderRadius: '16px', overflow: 'hidden' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header" style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Ticket size={20} color="#2563eb" /> Kho Voucher BookStore
+                </h3>
+                <p style={{ fontSize: '12.5px', color: '#64748b', margin: '4px 0 0' }}>
+                  Đơn hàng hiện tại: <strong>{formatPrice(subTotal)}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowVoucherModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px 24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {availableCoupons.map((c) => {
+                const isEligible = subTotal >= c.minimumOrderAmount;
+                const isSelected = appliedCoupon?.code === c.code;
+
+                return (
+                  <div
+                    key={c.code}
+                    style={{
+                      border: isSelected ? '2px solid #2563eb' : isEligible ? '1.5px solid #cbd5e1' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '14px',
+                      backgroundColor: isSelected ? '#eff6ff' : isEligible ? '#ffffff' : '#f8fafc',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '14px',
+                      transition: 'all 0.2s ease',
+                      opacity: isEligible || isSelected ? 1 : 0.75
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <span style={{
+                          backgroundColor: '#2563eb',
+                          color: '#ffffff',
+                          fontWeight: '800',
+                          fontSize: '12px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {c.code}
+                        </span>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#059669', backgroundColor: '#ecfdf5', padding: '1px 6px', borderRadius: '3px' }}>
+                          {c.type === 'PERCENT' ? `Giảm ${c.value}%` : `Giảm ${formatPrice(c.value)}`}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#1e293b', marginBottom: '2px' }}>
+                        {c.name}
+                      </div>
+
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        Đơn tối thiểu: <strong>{formatPrice(c.minimumOrderAmount)}</strong>
+                        {c.type === 'PERCENT' && c.maximumDiscountAmount > 0 && (
+                          <span> (Tối đa {formatPrice(c.maximumDiscountAmount)})</span>
+                        )}
+                      </div>
+
+                      {!isEligible && (
+                        <div style={{ fontSize: '11px', color: '#ea580c', fontWeight: '600', marginTop: '4px' }}>
+                          Cần mua thêm {formatPrice(c.minimumOrderAmount - subTotal)} để áp dụng mã này
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      {isSelected ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleRemoveCoupon();
+                            setShowVoucherModal(false);
+                          }}
+                          className="btn btn-outline btn-sm"
+                          style={{ borderColor: '#ef4444', color: '#ef4444', fontSize: '12px', padding: '6px 12px' }}
+                        >
+                          Bỏ chọn
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleApplyCode(c.code)}
+                          disabled={!isEligible || validatingCoupon}
+                          className={`btn ${isEligible ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            padding: '6px 14px',
+                            cursor: isEligible ? 'pointer' : 'not-allowed',
+                            opacity: isEligible ? 1 : 0.6
+                          }}
+                        >
+                          {isEligible ? 'Áp dụng' : 'Chưa đủ'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

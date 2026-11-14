@@ -1338,7 +1338,14 @@ export const AdminCoupons = () => {
                     <td><strong className="badge badge-primary">{c.code}</strong></td>
                     <td>{c.name}</td>
                     <td>{c.type === 'PERCENT' ? 'Phần trăm (%)' : 'Cố định (VNĐ)'}</td>
-                    <td><strong>{c.type === 'PERCENT' ? `${c.value}%` : formatPrice(c.value)}</strong></td>
+                    <td>
+                      <strong>{c.type === 'PERCENT' ? `${c.value}%` : formatPrice(c.value)}</strong>
+                      {c.type === 'PERCENT' && c.maximumDiscountAmount > 0 && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          Tối đa {formatPrice(c.maximumDiscountAmount)}
+                        </div>
+                      )}
+                    </td>
                     <td>{formatPrice(c.minimumOrderAmount)}</td>
                     <td>{c.usedCount} / {c.usageLimit}</td>
                     <td>

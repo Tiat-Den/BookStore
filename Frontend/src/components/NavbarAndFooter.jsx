@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   BookOpen, ShoppingCart, User, Search, LogOut, Shield, Heart, Tag, ShoppingBag,
   ChevronDown, FileText, ShieldCheck, Truck, CreditCard, HelpCircle, Phone, 
-  Menu, X, Sparkles, Flame, Clock, Award, CheckCircle2, Send, Building, MapPin
+  Menu, X, Flame, Clock, Award, CheckCircle2, Send, Building, MapPin
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -101,9 +101,9 @@ export const Navbar = () => {
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#f59e0b', fontWeight: '700' }}>
-              <Sparkles size={13} /> ƯU ĐÃI HÔM NAY:
+              <Tag size={13} /> ƯU ĐÃI HÔM NAY:
             </span>
-            <span>Miễn phí giao hàng toàn quốc từ <strong>250.000đ</strong> | Giảm thêm 10% cho khách hàng mới</span>
+            <span>Freeship toàn quốc từ <strong>200.000đ</strong> (mã <strong>FREESHIP</strong>) | Giảm 15% cho bạn mới (mã <strong>BANMOI15</strong>)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px' }}>
