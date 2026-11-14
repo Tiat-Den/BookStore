@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart, Zap, ArrowRight } from 'lucide-react';
 import { bookService } from '../services/catalogAndOrderServices';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
-import { LoadingSpinner } from '../components/UIComponents';
+import { LoadingSpinner, ProductCard } from '../components/UIComponents';
 
 export const BookDetail = () => {
   const { id } = useParams(); // can be slug or id
@@ -19,7 +19,9 @@ export const BookDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [buying, setBuying] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [relatedBooks, setRelatedBooks] = useState([]);
 
   const isWishlisted = book ? isInWishlist(book.id) : false;
 
@@ -39,6 +41,7 @@ export const BookDetail = () => {
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const fetchBook = async () => {
       setLoading(true);
       try {
@@ -52,7 +55,22 @@ export const BookDetail = () => {
         }
 
         if (res.success && res.data) {
-          setBook(res.data);
+          const currentBook = res.data;
+          setBook(currentBook);
+
+          // Tải danh sách sách cùng thể loại (loại trừ sách hiện tại)
+          if (currentBook.categories && currentBook.categories.length > 0) {
+            const primaryCat = currentBook.categories[0];
+            try {
+              const relRes = await bookService.getBooks({ categoryId: primaryCat.id, pageSize: 6 });
+              if (relRes.success && relRes.data?.items) {
+                const filtered = relRes.data.items.filter(b => b.id !== currentBook.id);
+                setRelatedBooks(filtered.slice(0, 4));
+              }
+            } catch (relErr) {
+              console.error('Lỗi khi tải sách cùng thể loại:', relErr);
+            }
+          }
         }
       } catch (err) {
         console.error('Lỗi khi tải chi tiết sách:', err);
@@ -71,9 +89,9 @@ export const BookDetail = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (adding) return;
+    if (adding || buying) return;
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: { from: `/books/${id}` } });
       return;
     }
 
@@ -86,6 +104,28 @@ export const BookDetail = () => {
       setTimeout(() => setAdded(false), 2000);
     } else {
       alert(res.message);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (buying || adding) return;
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/books/${id}` } });
+      return;
+    }
+
+    setBuying(true);
+    const res = await addToCart(book.id, quantity);
+    setBuying(false);
+
+    if (res.success) {
+      navigate('/checkout');
+    } else {
+      alert(res.message || 'Không thể tiến hành đặt mua ngay.');
     }
   };
 
@@ -340,19 +380,65 @@ export const BookDetail = () => {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={adding}
-                  className={`btn ${added ? 'btn-secondary' : 'btn-primary'} btn-lg`}
-                  style={{ flex: 1, minHeight: '48px', minWidth: '180px' }}
+                  disabled={adding || buying}
+                  className={`btn ${added ? 'btn-secondary' : 'btn-outline'} btn-lg`}
+                  style={{
+                    flex: '1 1 180px',
+                    minHeight: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    fontSize: '15px',
+                    borderColor: 'var(--primary)',
+                    color: added ? '#ffffff' : 'var(--primary)'
+                  }}
                 >
                   {added ? (
                     <>
-                      <Check size={20} /> Đã thêm vào giỏ hàng
+                      <Check size={20} /> Đã thêm vào giỏ
                     </>
                   ) : (
                     <>
-                      <ShoppingCart size={20} /> Thêm vào giỏ hàng
+                      <ShoppingCart size={20} /> {adding ? 'Đang thêm...' : 'Thêm vào giỏ'}
                     </>
                   )}
+                </button>
+
+                {/* Buy Now Button */}
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  disabled={buying || adding}
+                  className="btn btn-lg"
+                  style={{
+                    flex: '1 1 170px',
+                    minHeight: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontWeight: '700',
+                    fontSize: '15px',
+                    color: '#ffffff',
+                    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+                    cursor: 'pointer',
+                    borderRadius: 'var(--radius)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(234, 88, 12, 0.45)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 14px rgba(234, 88, 12, 0.35)';
+                  }}
+                >
+                  <Zap size={18} fill="#ffffff" /> {buying ? 'Đang chuyển...' : 'Mua Ngay'}
                 </button>
               </>
             ) : (
@@ -472,6 +558,48 @@ export const BookDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Sách Cùng Thể Loại Section */}
+      {relatedBooks.length > 0 && (
+        <div style={{ marginTop: '56px', borderTop: '1px solid #e2e8f0', paddingTop: '40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                Gợi ý cho bạn
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                Sách Cùng Thể Loại
+              </h2>
+            </div>
+            {book.categories && book.categories.length > 0 && (
+              <Link
+                to={`/books?categoryId=${book.categories[0].id}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#2563eb',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  textDecoration: 'none'
+                }}
+              >
+                Xem tất cả sách {book.categories[0].name} <ArrowRight size={16} />
+              </Link>
+            )}
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+            gap: '24px'
+          }}>
+            {relatedBooks.map((relBook) => (
+              <ProductCard key={relBook.id} book={relBook} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

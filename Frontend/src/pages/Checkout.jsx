@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { 
   ShieldCheck, Truck, CreditCard, ArrowLeft, QrCode, Clock, 
   RefreshCw, CheckCircle, AlertCircle, Copy, Check 
@@ -15,6 +15,7 @@ export const Checkout = () => {
   const { cart, refreshCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     receiverName: user?.fullName || '',
@@ -126,6 +127,29 @@ export const Checkout = () => {
       setValidatingCoupon(false);
     }
   };
+
+  // Tự động nhận và kiểm tra mã giảm giá nếu được truyền từ Giỏ hàng
+  useEffect(() => {
+    const passedCode = location.state?.couponCode;
+    if (passedCode && subTotal > 0 && !formData.couponCode) {
+      setCouponInput(passedCode);
+      (async () => {
+        setValidatingCoupon(true);
+        try {
+          const res = await (await import('../services/marketingServices')).couponService.validateCoupon(passedCode, subTotal);
+          if (res.success && res.data?.isValid) {
+            setDiscountAmount(res.data.discountAmount);
+            setFormData(prev => ({ ...prev, couponCode: res.data.code }));
+            setCouponMsg(res.data.message || `Đã áp dụng mã ${res.data.code}`);
+          }
+        } catch (err) {
+          console.error('Lỗi khi tự động áp dụng mã từ giỏ hàng:', err);
+        } finally {
+          setValidatingCoupon(false);
+        }
+      })();
+    }
+  }, [location.state?.couponCode, subTotal]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -698,12 +722,12 @@ export const Checkout = () => {
 
           {/* Coupon Code Section */}
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginBottom: '16px' }}>
-            <label style={{ fontSize: '12px', fontWeight: '700', marginBottom: '6px', display: 'block' }}>Mã Giảm Giá</label>
+            <label style={{ fontSize: '12px', fontWeight: '700', marginBottom: '6px', display: 'block' }}>Mã Giảm Giá / Voucher</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
                 className="input"
-                placeholder="Nhập mã (ví dụ: BOOK20)"
+                placeholder="Nhập mã (ví dụ: BOOKSTORE50)"
                 value={couponInput}
                 onChange={(e) => setCouponInput(e.target.value)}
                 style={{ textTransform: 'uppercase', fontSize: '13px', padding: '8px 12px' }}
@@ -717,9 +741,13 @@ export const Checkout = () => {
                 {validatingCoupon ? 'Kiểm tra...' : 'Áp dụng'}
               </button>
             </div>
-            {couponMsg && (
+            {couponMsg ? (
               <div style={{ fontSize: '12px', marginTop: '6px', color: discountAmount > 0 ? 'var(--success)' : 'var(--danger)', fontWeight: '600' }}>
                 {couponMsg}
+              </div>
+            ) : (
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px' }}>
+                💡 Gợi ý: Nhập mã <strong>BOOKSTORE50</strong> để giảm 50.000đ cho đơn từ 250k.
               </div>
             )}
           </div>

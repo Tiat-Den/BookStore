@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Tag, Check, X, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { couponService } from '../services/marketingServices';
 import { LoadingSpinner } from '../components/UIComponents';
 
 export const Cart = () => {
   const { cart, loading, updateQuantity, removeItem, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
@@ -33,8 +39,43 @@ export const Cart = () => {
 
   const items = cart.items || [];
   const subTotal = cart.subTotal || 0;
+  const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const shippingFee = subTotal >= 300000 || items.length === 0 ? 0 : 30000;
-  const totalAmount = subTotal + shippingFee;
+  const totalAmount = Math.max(0, subTotal - discountAmount + shippingFee);
+
+  const handleApplyCoupon = async (e) => {
+    if (e) e.preventDefault();
+    const code = couponInput.trim();
+    if (!code) return;
+
+    setValidatingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await couponService.validateCoupon(code, subTotal);
+      if (res.success && res.data?.isValid) {
+        setAppliedCoupon({
+          code: res.data.code,
+          discountAmount: res.data.discountAmount,
+          message: res.data.message || 'Áp dụng mã giảm giá thành công!'
+        });
+        setCouponError('');
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(res.data?.message || res.message || 'Mã giảm giá không hợp lệ hoặc chưa đủ điều kiện.');
+      }
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponError(err.response?.data?.message || err.message || 'Lỗi khi kiểm tra mã giảm giá.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+  };
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
@@ -151,6 +192,15 @@ export const Cart = () => {
                 <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>{formatPrice(subTotal)}</span>
               </div>
 
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Tag size={14} /> Giảm giá voucher ({appliedCoupon.code}):
+                  </span>
+                  <span style={{ fontWeight: '700' }}>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Phí vận chuyển:</span>
                 <span style={{ fontWeight: '600', color: shippingFee === 0 ? 'var(--success)' : 'var(--text-main)' }}>
@@ -164,14 +214,104 @@ export const Cart = () => {
                 </div>
               )}
 
+              {/* Voucher Input Box */}
+              <div style={{ margin: '8px 0', borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0', padding: '14px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+                  <Tag size={15} color="#2563eb" /> Mã Giảm Giá / Voucher
+                </div>
+
+                {appliedCoupon ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    backgroundColor: '#ecfdf5',
+                    border: '1px solid #a7f3d0',
+                    borderRadius: '8px',
+                    color: '#065f46'
+                  }}>
+                    <div>
+                      <div style={{ fontWeight: '700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Check size={14} color="#059669" /> {appliedCoupon.code}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#047857' }}>
+                        Giảm {formatPrice(appliedCoupon.discountAmount)} cho đơn hàng
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#991b1b',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        padding: '4px'
+                      }}
+                      title="Bỏ mã giảm giá"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type="text"
+                        placeholder="Mã voucher (VD: BOOKSTORE50)"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyCoupon();
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '8px 10px',
+                          border: '1.5px solid #cbd5e1',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          textTransform: 'uppercase',
+                          fontWeight: '600'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={validatingCoupon || !couponInput.trim()}
+                        className="btn btn-primary btn-sm"
+                        style={{ minWidth: '76px', fontWeight: '700' }}
+                      >
+                        {validatingCoupon ? '...' : 'Áp dụng'}
+                      </button>
+                    </div>
+
+                    {couponError && (
+                      <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '6px', fontWeight: '500' }}>
+                        {couponError}
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '6px' }}>
+                      💡 Gợi ý: Nhập mã <strong style={{ color: '#2563eb' }}>BOOKSTORE50</strong> để giảm 50.000đ cho đơn từ 250k.
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: '800' }}>
                 <span>Tổng cộng:</span>
-                <span style={{ color: 'var(--primary)' }}>{formatPrice(totalAmount)}</span>
+                <span style={{ color: 'var(--primary)', fontSize: '20px' }}>{formatPrice(totalAmount)}</span>
               </div>
             </div>
 
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate('/checkout', { state: { couponCode: appliedCoupon?.code } })}
               className="btn btn-primary btn-lg"
               style={{ width: '100%' }}
             >
