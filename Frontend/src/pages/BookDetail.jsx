@@ -5,6 +5,7 @@ import { bookService } from '../services/catalogAndOrderServices';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../context/ToastContext';
 import { LoadingSpinner, ProductCard } from '../components/UIComponents';
 
 export const BookDetail = () => {
@@ -13,6 +14,7 @@ export const BookDetail = () => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,8 +37,17 @@ export const BookDetail = () => {
     setWishlistLoading(true);
     const res = await toggleWishlist(book.id);
     setWishlistLoading(false);
-    if (!res.success && res.message) {
-      alert(res.message);
+    if (res.success) {
+      if (res.added) {
+        toast.success(`Đã thêm "${book.title}" vào danh sách yêu thích!`, {
+          actionText: 'Xem yêu thích',
+          actionLink: '/wishlist'
+        });
+      } else {
+        toast.info(`Đã bỏ "${book.title}" khỏi danh sách yêu thích.`);
+      }
+    } else if (res.message) {
+      toast.error(res.message);
     }
   };
 
@@ -102,8 +113,12 @@ export const BookDetail = () => {
     if (res.success) {
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
+      toast.success(`Đã thêm "${book.title}"${quantity > 1 ? ` (x${quantity})` : ''} vào giỏ hàng thành công!`, {
+        actionText: 'Xem giỏ hàng',
+        actionLink: '/cart'
+      });
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể thêm sách vào giỏ hàng.');
     }
   };
 
@@ -125,7 +140,7 @@ export const BookDetail = () => {
     if (res.success) {
       navigate('/checkout');
     } else {
-      alert(res.message || 'Không thể tiến hành đặt mua ngay.');
+      toast.error(res.message || 'Không thể tiến hành đặt mua ngay.');
     }
   };
 

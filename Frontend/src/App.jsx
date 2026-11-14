@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ToastProvider } from './context/ToastContext';
 import { Navbar, Footer } from './components/NavbarAndFooter';
 import { ProtectedRoute, ErrorBoundary } from './components/UIComponents';
 import ChatWidget from './components/ChatWidget';
+import BackToTop from './components/BackToTop';
 
 import { Home } from './pages/Home';
 import { Books } from './pages/Books';
@@ -46,13 +48,14 @@ export function App() {
       <CartProvider>
         <WishlistProvider>
           <BrowserRouter>
-            <ScrollToTop />
-            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-              <Navbar />
-            
-            <main style={{ flex: 1 }}>
-              <ErrorBoundary>
-                <Routes>
+            <ToastProvider>
+              <ScrollToTop />
+              <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                <Navbar />
+              
+              <main style={{ flex: 1 }}>
+                <ErrorBoundary>
+                  <Routes>
                   {/* Customer Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/books" element={<Books />} />
@@ -154,7 +157,9 @@ export function App() {
 
             <Footer />
             <ChatWidget />
+            <BackToTop />
           </div>
+          </ToastProvider>
         </BrowserRouter>
         </WishlistProvider>
       </CartProvider>

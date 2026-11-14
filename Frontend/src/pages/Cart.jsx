@@ -3,12 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Tag, Check, X, Ticket, Gift, BookOpen } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { couponService } from '../services/marketingServices';
 import { LoadingSpinner } from '../components/UIComponents';
+import EmptyState from '../components/EmptyState';
 
 export const Cart = () => {
   const { cart, loading, updateQuantity, removeItem, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const [couponInput, setCouponInput] = useState('');
@@ -73,22 +76,43 @@ export const Cart = () => {
         setCouponInput(res.data.code);
         setCouponError('');
         setShowVoucherModal(false);
+        toast.success(`Áp dụng mã ${res.data.code} thành công! Giảm ${formatPrice(res.data.discountAmount)}.`);
       } else {
         setAppliedCoupon(null);
-        setCouponError(res.data?.message || res.message || 'Mã giảm giá không hợp lệ hoặc chưa đủ điều kiện.');
+        const errMsg = res.data?.message || res.message || 'Mã giảm giá không hợp lệ hoặc chưa đủ điều kiện.';
+        setCouponError(errMsg);
+        toast.error(errMsg);
       }
     } catch (err) {
       setAppliedCoupon(null);
-      setCouponError(err.response?.data?.message || err.message || 'Lỗi khi kiểm tra mã giảm giá.');
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi kiểm tra mã giảm giá.';
+      setCouponError(errMsg);
+      toast.error(errMsg);
     } finally {
       setValidatingCoupon(false);
     }
   };
 
   const handleRemoveCoupon = () => {
+    const oldCode = appliedCoupon?.code;
     setAppliedCoupon(null);
     setCouponInput('');
     setCouponError('');
+    if (oldCode) {
+      toast.info(`Đã hủy áp dụng mã ${oldCode}.`);
+    }
+  };
+
+  const handleRemoveItem = async (item) => {
+    await removeItem(item.id);
+    toast.info(`Đã xóa "${item.bookTitle}" khỏi giỏ hàng.`);
+  };
+
+  const handleClearCart = async () => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng?')) {
+      await clearCart();
+      toast.info('Đã xóa toàn bộ sản phẩm trong giỏ hàng.');
+    }
   };
 
   return (
@@ -98,16 +122,7 @@ export const Cart = () => {
       </h1>
 
       {items.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <ShoppingBag size={56} color="var(--text-light)" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Giỏ hàng đang trống</h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>
-            Bạn chưa chọn mua cuốn sách nào. Hãy khám phá kho tàng sách phong phú của chúng tôi nhé!
-          </p>
-          <Link to="/books" className="btn btn-primary">
-            Khám phá sách ngay <ArrowRight size={16} />
-          </Link>
-        </div>
+        <EmptyState type="cart" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px', alignItems: 'start' }}>
           {/* Cart items table */}
@@ -171,7 +186,7 @@ export const Cart = () => {
 
                       <td>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveItem(item)}
                           style={{ border: 'none', background: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '6px' }}
                           title="Xóa khỏi giỏ"
                         >
@@ -188,7 +203,7 @@ export const Cart = () => {
               <Link to="/books" className="btn btn-outline btn-sm">
                 <ArrowLeft size={16} /> Tiếp tục chọn sách
               </Link>
-              <button onClick={clearCart} className="btn btn-danger btn-sm">
+              <button onClick={handleClearCart} className="btn btn-danger btn-sm">
                 Xóa toàn bộ giỏ
               </button>
             </div>

@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, ArrowRight } from 'lucide-react';
 import { wishlistService } from '../services/marketingServices';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { LoadingSpinner } from '../components/UIComponents';
+import EmptyState from '../components/EmptyState';
 
 export const Wishlist = () => {
   const [wishlist, setWishlist] = useState({ items: [] });
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
   const fetchWishlist = async () => {
     try {
@@ -26,17 +29,23 @@ export const Wishlist = () => {
     fetchWishlist();
   }, []);
 
-  const handleRemove = async (bookId) => {
+  const handleRemove = async (bookId, title) => {
     const res = await wishlistService.removeFromWishlist(bookId);
-    if (res.success) setWishlist(res.data);
+    if (res.success) {
+      setWishlist(res.data);
+      toast.info(title ? `Đã bỏ "${title}" khỏi danh sách yêu thích.` : 'Đã xóa sách khỏi danh sách yêu thích.');
+    }
   };
 
-  const handleAddToCart = async (bookId) => {
-    const res = await addToCart(bookId, 1);
+  const handleAddToCart = async (item) => {
+    const res = await addToCart(item.bookId || item.id, 1);
     if (res.success) {
-      alert('Đã thêm sách vào giỏ hàng!');
+      toast.success(`Đã thêm "${item.title}" vào giỏ hàng thành công!`, {
+        actionText: 'Xem giỏ hàng',
+        actionLink: '/cart'
+      });
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể thêm vào giỏ hàng.');
     }
   };
 
@@ -54,14 +63,7 @@ export const Wishlist = () => {
       </div>
 
       {items.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <Heart size={56} color="var(--text-light)" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Danh sách yêu thích trống</h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-            Hãy bấm vào biểu tượng trái tim để lưu lại những cuốn sách bạn yêu thích để mua sau nhé.
-          </p>
-          <Link to="/books" className="btn btn-primary">Khám phá sách ngay <ArrowRight size={16} /></Link>
-        </div>
+        <EmptyState type="wishlist" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>
           {items.map((item) => (
@@ -86,10 +88,10 @@ export const Wishlist = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => handleAddToCart(item.bookId)} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+                  <button onClick={() => handleAddToCart(item)} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
                     <ShoppingCart size={15} /> Thêm vào giỏ hàng
                   </button>
-                  <button onClick={() => handleRemove(item.bookId)} className="btn btn-danger btn-sm" title="Xóa khỏi yêu thích">
+                  <button onClick={() => handleRemove(item.bookId, item.title)} className="btn btn-danger btn-sm" title="Xóa khỏi yêu thích">
                     <Trash2 size={15} />
                   </button>
                 </div>

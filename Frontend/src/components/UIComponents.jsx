@@ -4,11 +4,13 @@ import { ShoppingCart, Star, Check, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../context/ToastContext';
 
 export const ProductCard = ({ book }) => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
   const isWishlisted = isInWishlist(book.id);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const navigate = useNavigate();
@@ -36,8 +38,12 @@ export const ProductCard = ({ book }) => {
     if (res.success) {
       setAdded(true);
       setTimeout(() => setAdded(false), 1800);
+      toast.success(`Đã thêm "${book.title}" vào giỏ hàng thành công!`, {
+        actionText: 'Xem giỏ hàng',
+        actionLink: '/cart'
+      });
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể thêm vào giỏ hàng.');
     }
   };
 
@@ -59,7 +65,7 @@ export const ProductCard = ({ book }) => {
     if (res.success) {
       navigate('/checkout');
     } else {
-      alert(res.message || 'Không thể tiến hành đặt mua ngay.');
+      toast.error(res.message || 'Không thể tiến hành đặt mua ngay.');
     }
   };
 
@@ -77,8 +83,17 @@ export const ProductCard = ({ book }) => {
     setWishlistLoading(true);
     const res = await toggleWishlist(book.id);
     setWishlistLoading(false);
-    if (!res.success && res.message) {
-      alert(res.message);
+    if (res.success) {
+      if (res.added) {
+        toast.success(`Đã thêm "${book.title}" vào danh sách yêu thích!`, {
+          actionText: 'Xem yêu thích',
+          actionLink: '/wishlist'
+        });
+      } else {
+        toast.info(`Đã bỏ "${book.title}" khỏi danh sách yêu thích.`);
+      }
+    } else if (res.message) {
+      toast.error(res.message);
     }
   };
 
