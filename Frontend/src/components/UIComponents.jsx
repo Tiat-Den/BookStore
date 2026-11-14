@@ -67,83 +67,86 @@ export const ProductCard = ({ book }) => {
 
   return (
     <div className="book-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
-      {/* Top badges: Discount & Freeship */}
-      <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 3 }}>
-        {discountPercent > 0 && (
+      {/* Book Cover Container with Floating Badges */}
+      <div style={{ position: 'relative', marginBottom: '12px' }}>
+        {/* Top badges: Discount & Freeship */}
+        <div style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 3, pointerEvents: 'none' }}>
+          {discountPercent > 0 && (
+            <span style={{
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              fontSize: '11px',
+              fontWeight: '800',
+              padding: '2px 7px',
+              borderRadius: '4px',
+              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+            }}>
+              -{discountPercent}%
+            </span>
+          )}
           <span style={{
-            backgroundColor: '#ef4444',
+            backgroundColor: '#059669',
             color: '#ffffff',
-            fontSize: '11px',
-            fontWeight: '800',
-            padding: '2px 7px',
-            borderRadius: '4px',
-            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+            fontSize: '9.5px',
+            fontWeight: '700',
+            padding: '1px 6px',
+            borderRadius: '3px',
+            letterSpacing: '0.3px',
+            textTransform: 'uppercase'
           }}>
-            -{discountPercent}%
+            Freeship
           </span>
-        )}
-        <span style={{
-          backgroundColor: '#059669',
-          color: '#ffffff',
-          fontSize: '9.5px',
-          fontWeight: '700',
-          padding: '1px 6px',
-          borderRadius: '3px',
-          letterSpacing: '0.3px',
-          textTransform: 'uppercase'
-        }}>
-          Freeship
-        </span>
-      </div>
+        </div>
 
-      {/* Wishlist Button */}
-      <button
-        onClick={handleToggleWishlist}
-        disabled={wishlistLoading}
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          width: '32px',
-          height: '32px',
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
-          border: '1px solid #f1f5f9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          zIndex: 3,
-          transition: 'transform 0.2s, background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-        title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
-      >
-        <Heart
-          size={16}
-          color="#ef4444"
-          fill={isWishlisted ? "#ef4444" : "none"}
-        />
-      </button>
-
-      {/* Book Cover Frame (3D realistic container with drop-shadow) */}
-      <Link
-        to={`/books/${book.slug || book.id}`}
-        className="book-cover-frame"
-        style={{ textDecoration: 'none', marginBottom: '12px' }}
-      >
-        <img
-          src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80'}
-          alt={book.title}
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80';
+        {/* Wishlist Button */}
+        <button
+          onClick={handleToggleWishlist}
+          disabled={wishlistLoading}
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: '#ffffff',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+            border: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 3,
+            transition: 'transform 0.2s, background-color 0.2s'
           }}
-        />
-      </Link>
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
+        >
+          <Heart
+            size={16}
+            color="#ef4444"
+            fill={isWishlisted ? "#ef4444" : "none"}
+          />
+        </button>
+
+        {/* Book Cover Frame - Full Fit */}
+        <Link
+          to={`/books/${book.slug || book.id}`}
+          className="book-cover-frame"
+          style={{ textDecoration: 'none' }}
+        >
+          <img
+            src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80'}
+            alt={book.title}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80';
+            }}
+          />
+        </Link>
+      </div>
 
       {/* Author Name */}
       <div style={{
