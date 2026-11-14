@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  BookOpen, Sparkles, TrendingUp, ArrowRight, ShieldCheck, Truck, RotateCcw, 
-  Flame, Clock, Award, Headphones, Quote, Percent, ChevronRight, CheckCircle2
+  BookOpen, TrendingUp, ArrowRight, ShieldCheck, Truck, RotateCcw, 
+  Flame, Clock, Award, Headphones, Quote, Percent, ChevronLeft, ChevronRight, CheckCircle2
 } from 'lucide-react';
 import { bookService, categoryService } from '../services/catalogAndOrderServices';
 import { ProductCard, LoadingSpinner } from '../components/UIComponents';
@@ -21,19 +21,28 @@ const CATEGORY_MAP = {
 
 const HERO_SLIDES = [
   {
-    url: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=800&q=80',
-    caption: 'Hàng Ngàn Đầu Sách Tuyển Chọn',
-    tag: 'Sách Hay Bán Chạy'
+    url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80',
+    title: 'Nuôi Dưỡng Tâm Hồn & Tri Thức',
+    subtitle: 'Đọc sách mỗi ngày để mở mang tầm nhìn cuộc sống',
+    tag: 'Đọc Sách Mỗi Ngày',
+    badge: 'Khuyên Đọc',
+    link: '/books'
   },
   {
-    url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80',
-    caption: 'Nuôi Dưỡng Tâm Hồn & Tri Thức',
-    tag: 'Đọc Sách Mỗi Ngày'
+    url: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=800&q=80',
+    title: 'Hàng Ngàn Tác Phẩm Tuyển Chọn',
+    subtitle: 'Tuyển tập các cuốn sách bán chạy & kinh điển mọi thời đại',
+    tag: 'Sách Bán Chạy',
+    badge: 'Hot Nhất',
+    link: '/books?sort=best_seller'
   },
   {
     url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80',
-    caption: 'Ưu Đãi & Giao Nhanh Toàn Quốc',
-    tag: 'Freeship Từ 300K'
+    title: 'Ưu Đãi & Giao Hàng Toàn Quốc',
+    subtitle: 'Freeship mọi đơn hàng từ 300.000đ - Đổi trả trong 7 ngày',
+    tag: 'Freeship Toàn Quốc',
+    badge: 'Tiết Kiệm',
+    link: '/books'
   }
 ];
 
@@ -110,6 +119,22 @@ export const Home = () => {
 
   const padZero = (n) => String(n).padStart(2, '0');
 
+  const handlePrevSlide = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  };
+
+  const handleNextSlide = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+  };
+
   return (
     <div style={{ background: '#f8fafc', paddingBottom: '60px' }}>
       {/* Hero Banner Section */}
@@ -119,12 +144,13 @@ export const Home = () => {
         padding: '60px 0 70px 0',
         borderRadius: '0 0 32px 32px',
         marginBottom: '36px',
-        boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.25)'
+        boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.25)',
+        position: 'relative'
       }}>
         <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'center', gap: '40px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)', padding: '6px 14px', borderRadius: '9999px', fontSize: '13px', fontWeight: '600', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <Sparkles size={16} color="#60a5fa" /> Nhà Sách Trực Tuyến Uy Tín Hàng Đầu
+              <BookOpen size={16} color="#93c5fd" /> Nhà Sách Trực Tuyến Uy Tín Hàng Đầu
             </div>
             <h1 style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.2', marginBottom: '18px', letterSpacing: '-0.8px' }}>
               Khám Phá Tri Thức,<br />Nâng Tầm Tương Lai
@@ -142,7 +168,7 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Interactive Slide Container */}
+          {/* Interactive Slide Container (Slidebar) */}
           <div
             style={{ display: 'flex', justifyContent: 'center' }}
             onMouseEnter={() => setIsHovered(true)}
@@ -151,28 +177,31 @@ export const Home = () => {
             <div style={{
               position: 'relative',
               width: '100%',
-              maxWidth: '460px',
-              height: '320px',
+              maxWidth: '480px',
+              height: '330px',
               borderRadius: '24px',
               overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.45)',
-              border: '3px solid rgba(255, 255, 255, 0.25)'
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+              border: '2.5px solid rgba(255, 255, 255, 0.22)',
+              backgroundColor: '#0f172a'
             }}>
               {HERO_SLIDES.map((slide, index) => (
-                <div
+                <Link
                   key={index}
+                  to={slide.link}
                   style={{
                     position: 'absolute',
                     inset: 0,
                     opacity: currentSlide === index ? 1 : 0,
-                    transform: currentSlide === index ? 'scale(1)' : 'scale(1.04)',
-                    transition: 'opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
-                    pointerEvents: currentSlide === index ? 'auto' : 'none'
+                    transform: currentSlide === index ? 'scale(1)' : 'scale(1.05)',
+                    transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                    pointerEvents: currentSlide === index ? 'auto' : 'none',
+                    textDecoration: 'none'
                   }}
                 >
                   <img
                     src={slide.url}
-                    alt={slide.caption}
+                    alt={slide.title}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -182,43 +211,174 @@ export const Home = () => {
                   <div style={{
                     position: 'absolute',
                     inset: 0,
-                    background: 'linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 60%, rgba(0, 0, 0, 0.3) 100%)'
+                    background: 'linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.35) 55%, rgba(0, 0, 0, 0.2) 100%)'
                   }} />
 
+                  {/* Slide Content Box */}
                   <div style={{
                     position: 'absolute',
                     bottom: '24px',
-                    left: '20px',
-                    right: '20px',
+                    left: '22px',
+                    right: '22px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '6px'
                   }}>
-                    <span style={{
-                      alignSelf: 'flex-start',
-                      backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                      backdropFilter: 'blur(8px)',
-                      color: '#ffffff',
-                      fontSize: '11px',
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                        backdropFilter: 'blur(8px)',
+                        color: '#ffffff',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        border: '1px solid rgba(255, 255, 255, 0.25)'
+                      }}>
+                        {slide.tag}
+                      </span>
+                      <span style={{
+                        backgroundColor: '#f97316',
+                        color: '#ffffff',
+                        fontSize: '10.5px',
+                        fontWeight: '700',
+                        padding: '2px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        {slide.badge}
+                      </span>
+                    </div>
+
+                    <h3 style={{
+                      fontSize: '18px',
                       fontWeight: '800',
-                      padding: '3px 10px',
-                      borderRadius: '6px',
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
-                    }}>
-                      {slide.tag}
-                    </span>
-                    <span style={{
-                      fontSize: '17px',
-                      fontWeight: '700',
                       color: '#ffffff',
-                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      margin: 0,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                      lineHeight: '1.3'
                     }}>
-                      {slide.caption}
-                    </span>
+                      {slide.title}
+                    </h3>
+                    <p style={{
+                      fontSize: '13px',
+                      color: '#cbd5e1',
+                      margin: 0,
+                      textShadow: '0 1px 3px rgba(0,0,0,0.6)'
+                    }}>
+                      {slide.subtitle}
+                    </p>
                   </div>
-                </div>
+                </Link>
               ))}
+
+              {/* Slider Navigation Arrows */}
+              <button
+                type="button"
+                onClick={handlePrevSlide}
+                aria-label="Slide trước"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '12px',
+                  transform: 'translateY(-50%)',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 6,
+                  transition: 'all 0.2s ease',
+                  padding: 0
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.color = '#0f172a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.6)';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextSlide}
+                aria-label="Slide tiếp theo"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '12px',
+                  transform: 'translateY(-50%)',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 6,
+                  transition: 'all 0.2s ease',
+                  padding: 0
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.color = '#0f172a';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.6)';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+
+              {/* Slider Pagination Dots */}
+              <div style={{
+                position: 'absolute',
+                bottom: '12px',
+                right: '22px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                zIndex: 6
+              }}>
+                {HERO_SLIDES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentSlide(idx);
+                    }}
+                    style={{
+                      width: currentSlide === idx ? '22px' : '7px',
+                      height: '7px',
+                      borderRadius: '4px',
+                      backgroundColor: currentSlide === idx ? '#38bdf8' : 'rgba(255, 255, 255, 0.45)',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    title={`Chuyển tới slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
