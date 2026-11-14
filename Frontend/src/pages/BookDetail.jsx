@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart, Zap, ArrowRight } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart, ArrowRight } from 'lucide-react';
 import { bookService } from '../services/catalogAndOrderServices';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -438,7 +438,7 @@ export const BookDetail = () => {
                     e.currentTarget.style.boxShadow = '0 4px 14px rgba(234, 88, 12, 0.35)';
                   }}
                 >
-                  <Zap size={18} fill="#ffffff" /> {buying ? 'Đang chuyển...' : 'Mua Ngay'}
+                  {buying ? 'Đang chuyển...' : 'Mua ngay'}
                 </button>
               </>
             ) : (

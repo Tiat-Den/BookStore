@@ -14,6 +14,7 @@ export const ProductCard = ({ book }) => {
   const navigate = useNavigate();
   const [added, setAdded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [buying, setBuying] = useState(false);
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
@@ -22,9 +23,9 @@ export const ProductCard = ({ book }) => {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (loading) return;
+    if (loading || buying) return;
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/login', { state: { from: `/books/${book.slug || book.id}` } });
       return;
     }
 
@@ -37,6 +38,28 @@ export const ProductCard = ({ book }) => {
       setTimeout(() => setAdded(false), 1800);
     } else {
       alert(res.message);
+    }
+  };
+
+  const handleBuyNow = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (buying || loading || book.stockQuantity <= 0) return;
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/books/${book.slug || book.id}` } });
+      return;
+    }
+
+    setBuying(true);
+    const res = await addToCart(book.id, 1);
+    setBuying(false);
+
+    if (res.success) {
+      navigate('/checkout');
+    } else {
+      alert(res.message || 'Không thể tiến hành đặt mua ngay.');
     }
   };
 
@@ -199,35 +222,112 @@ export const ProductCard = ({ book }) => {
           )}
         </div>
 
-        {/* Add to Cart button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={loading || book.stockQuantity <= 0}
-          className={`btn ${added ? 'btn-secondary' : 'btn-primary'}`}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            fontSize: '12.5px',
-            fontWeight: '600',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px'
-          }}
-        >
-          {book.stockQuantity <= 0 ? (
-            'Tạm hết hàng'
-          ) : added ? (
-            <>
-              <Check size={15} /> Đã thêm vào giỏ
-            </>
-          ) : (
-            <>
-              <ShoppingCart size={15} /> Thêm vào giỏ
-            </>
-          )}
-        </button>
+        {/* Action Buttons: Add to Cart & Buy Now */}
+        {book.stockQuantity <= 0 ? (
+          <button
+            disabled
+            className="btn btn-secondary"
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              borderRadius: '6px',
+              opacity: 0.65,
+              cursor: 'not-allowed'
+            }}
+          >
+            Tạm hết hàng
+          </button>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={loading || buying}
+              className={`btn ${added ? 'btn-secondary' : 'btn-outline'}`}
+              title="Thêm vào giỏ hàng"
+              style={{
+                padding: '7px 4px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                borderColor: added ? 'var(--secondary)' : '#cbd5e1',
+                color: added ? '#ffffff' : '#334155',
+                backgroundColor: added ? 'var(--secondary)' : '#f8fafc',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (!added) {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.color = 'var(--primary)';
+                  e.currentTarget.style.backgroundColor = '#eff6ff';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!added) {
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.color = '#334155';
+                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                }
+              }}
+            >
+              {added ? (
+                <>
+                  <Check size={14} /> Đã thêm
+                </>
+              ) : (
+                <>
+                  <ShoppingCart size={14} /> Thêm giỏ
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              disabled={buying || loading}
+              className="btn"
+              title="Mua ngay và chuyển đến thanh toán"
+              style={{
+                padding: '7px 4px',
+                fontSize: '12px',
+                fontWeight: '700',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                border: 'none',
+                color: '#ffffff',
+                boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (!buying) {
+                  e.currentTarget.style.boxShadow = '0 3px 8px rgba(234, 88, 12, 0.35)';
+                  e.currentTarget.style.opacity = '0.94';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!buying) {
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(234, 88, 12, 0.25)';
+                  e.currentTarget.style.opacity = '1';
+                }
+              }}
+            >
+              {buying ? 'Đang mua...' : 'Mua ngay'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
