@@ -120,19 +120,29 @@ export const BookDetail = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '40px', alignItems: 'start' }}>
         {/* Left Column: Book Cover Image & Customer Reviews */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {/* Book Cover Card */}
-          <div className="card" style={{ position: 'relative', padding: '32px 24px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          {/* Book Cover Card - Edge to Edge Full Fill */}
+          <div className="card" style={{
+            position: 'relative',
+            padding: 0,
+            overflow: 'hidden',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            aspectRatio: '3 / 4.2',
+            width: '100%',
+            maxWidth: '440px',
+            margin: '0 auto',
+            backgroundColor: '#f1f5f9',
+            boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.1)'
+          }}>
             <img
               src={book.coverImageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80'}
               alt={book.title}
               style={{
                 width: '100%',
-                maxWidth: '340px',
-                maxHeight: '480px',
-                objectFit: 'contain',
-                borderRadius: '6px',
-                filter: 'drop-shadow(0 14px 28px rgba(15, 23, 42, 0.22)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.1))',
-                transition: 'transform 0.3s ease'
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transition: 'transform 0.4s ease'
               }}
               onError={(e) => {
                 e.currentTarget.onerror = null;
@@ -147,9 +157,10 @@ export const BookDetail = () => {
               title={isWishlisted ? "Bỏ khỏi danh sách yêu thích" : "Thêm vào danh sách yêu thích"}
               style={{
                 position: 'absolute',
-                top: '36px',
-                right: '36px',
-                background: 'rgba(255, 255, 255, 0.95)',
+                top: '16px',
+                right: '16px',
+                background: 'rgba(255, 255, 255, 0.92)',
+                backdropFilter: 'blur(6px)',
                 border: isWishlisted ? '1px solid #fecaca' : '1px solid #e2e8f0',
                 borderRadius: '50%',
                 width: '42px',
@@ -163,7 +174,7 @@ export const BookDetail = () => {
                 zIndex: 2
               }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.backgroundColor = '#ffffff'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.95)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.92)'; }}
             >
               <Heart
                 size={22}
@@ -238,25 +249,88 @@ export const BookDetail = () => {
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap' }}>
             {book.stockQuantity > 0 ? (
               <>
-                {/* Quantity input */}
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', height: '48px' }}>
+                {/* Quantity input - perfectly centered */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  height: '46px',
+                  backgroundColor: '#ffffff'
+                }}>
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    style={{ width: '40px', height: '100%', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700', fontSize: '16px' }}
+                    style={{
+                      width: '42px',
+                      height: '100%',
+                      border: 'none',
+                      borderRight: '1px solid #e2e8f0',
+                      background: '#f8fafc',
+                      cursor: 'pointer',
+                      fontWeight: '700',
+                      fontSize: '18px',
+                      color: '#334155',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                   >
                     -
                   </button>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.min(book.stockQuantity, Math.max(1, parseInt(e.target.value) || 1)))}
-                    style={{ width: '56px', height: '100%', border: 'none', textAlign: 'center', fontSize: '15px', fontWeight: '600', outline: 'none' }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        setQuantity(Math.min(book.stockQuantity, Math.max(1, num)));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (!quantity || quantity < 1) setQuantity(1);
+                    }}
+                    style={{
+                      width: '54px',
+                      height: '100%',
+                      border: 'none',
+                      textAlign: 'center',
+                      fontSize: '15px',
+                      fontWeight: '700',
+                      color: '#0f172a',
+                      outline: 'none',
+                      backgroundColor: '#ffffff',
+                      padding: 0,
+                      margin: 0,
+                      lineHeight: '46px'
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.min(book.stockQuantity, quantity + 1))}
-                    style={{ width: '40px', height: '100%', border: 'none', background: '#f1f5f9', cursor: 'pointer', fontWeight: '700', fontSize: '16px' }}
+                    style={{
+                      width: '42px',
+                      height: '100%',
+                      border: 'none',
+                      borderLeft: '1px solid #e2e8f0',
+                      background: '#f8fafc',
+                      cursor: 'pointer',
+                      fontWeight: '700',
+                      fontSize: '18px',
+                      color: '#334155',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                   >
                     +
                   </button>
