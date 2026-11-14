@@ -240,7 +240,7 @@ export const ProductCard = ({ book }) => {
             Tạm hết hàng
           </button>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <button
               type="button"
               onClick={handleAddToCart}
@@ -248,43 +248,39 @@ export const ProductCard = ({ book }) => {
               className={`btn ${added ? 'btn-secondary' : 'btn-outline'}`}
               title="Thêm vào giỏ hàng"
               style={{
-                padding: '7px 4px',
+                width: '100%',
+                padding: '7px 12px',
                 fontSize: '12px',
                 fontWeight: '600',
                 borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
-                borderColor: added ? 'var(--secondary)' : '#cbd5e1',
-                color: added ? '#ffffff' : '#334155',
-                backgroundColor: added ? 'var(--secondary)' : '#f8fafc',
+                gap: '6px',
+                borderColor: added ? 'var(--secondary)' : 'var(--primary)',
+                color: added ? '#ffffff' : 'var(--primary)',
+                backgroundColor: added ? 'var(--secondary)' : '#ffffff',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
                 if (!added) {
-                  e.currentTarget.style.borderColor = 'var(--primary)';
-                  e.currentTarget.style.color = 'var(--primary)';
                   e.currentTarget.style.backgroundColor = '#eff6ff';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!added) {
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.color = '#334155';
-                  e.currentTarget.style.backgroundColor = '#f8fafc';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
                 }
               }}
             >
               {added ? (
                 <>
-                  <Check size={14} /> Đã thêm
+                  <Check size={14} /> Đã thêm vào giỏ hàng
                 </>
               ) : (
                 <>
-                  <ShoppingCart size={14} /> Thêm giỏ
+                  <ShoppingCart size={14} /> Thêm vào giỏ hàng
                 </>
               )}
             </button>
@@ -296,7 +292,8 @@ export const ProductCard = ({ book }) => {
               className="btn"
               title="Mua ngay và chuyển đến thanh toán"
               style={{
-                padding: '7px 4px',
+                width: '100%',
+                padding: '7px 12px',
                 fontSize: '12px',
                 fontWeight: '700',
                 borderRadius: '6px',
@@ -308,12 +305,11 @@ export const ProductCard = ({ book }) => {
                 color: '#ffffff',
                 boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
                 if (!buying) {
-                  e.currentTarget.style.boxShadow = '0 3px 8px rgba(234, 88, 12, 0.35)';
+                  e.currentTarget.style.boxShadow = '0 4px 10px rgba(234, 88, 12, 0.35)';
                   e.currentTarget.style.opacity = '0.94';
                 }
               }}

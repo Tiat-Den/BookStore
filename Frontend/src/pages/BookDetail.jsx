@@ -397,11 +397,11 @@ export const BookDetail = () => {
                 >
                   {added ? (
                     <>
-                      <Check size={20} /> Đã thêm vào giỏ
+                      <Check size={20} /> Đã thêm vào giỏ hàng
                     </>
                   ) : (
                     <>
-                      <ShoppingCart size={20} /> {adding ? 'Đang thêm...' : 'Thêm vào giỏ'}
+                      <ShoppingCart size={20} /> {adding ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
                     </>
                   )}
                 </button>

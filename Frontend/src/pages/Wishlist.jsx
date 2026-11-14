@@ -87,7 +87,7 @@ export const Wishlist = () => {
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => handleAddToCart(item.bookId)} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
-                    <ShoppingCart size={15} /> Thêm giỏ
+                    <ShoppingCart size={15} /> Thêm vào giỏ hàng
                   </button>
                   <button onClick={() => handleRemove(item.bookId)} className="btn btn-danger btn-sm" title="Xóa khỏi yêu thích">
                     <Trash2 size={15} />
