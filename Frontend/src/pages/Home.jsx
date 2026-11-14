@@ -149,9 +149,6 @@ export const Home = () => {
       }}>
         <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'center', gap: '40px' }}>
           <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)', padding: '6px 14px', borderRadius: '9999px', fontSize: '13px', fontWeight: '600', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <BookOpen size={16} color="#93c5fd" /> Nhà Sách Trực Tuyến Uy Tín Hàng Đầu
-            </div>
             <h1 style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.2', marginBottom: '18px', letterSpacing: '-0.8px' }}>
               Khám Phá Tri Thức,<br />Nâng Tầm Tương Lai
             </h1>
