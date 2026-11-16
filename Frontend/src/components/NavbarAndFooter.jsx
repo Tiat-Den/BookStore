@@ -3,11 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   BookOpen, ShoppingCart, User, Search, LogOut, Shield, Heart, Tag, ShoppingBag,
   ChevronDown, FileText, ShieldCheck, Truck, CreditCard, HelpCircle, Phone, 
-  Menu, X, Flame, Clock, Award, CheckCircle2, Send, Building, MapPin
+  Menu, X, Flame, Clock, Award, CheckCircle2, Send, Building, MapPin, Copy, Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useToast } from '../context/ToastContext';
 import { categoryService } from '../services/catalogAndOrderServices';
 import bookStoreLogo from '../assets/book-store-logo.png';
 import boCongThuongLogo from '../assets/bo-cong-thuong.png';
@@ -40,12 +41,28 @@ export const Navbar = () => {
   const { user, isAuthenticated, isManager, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
   const { totalItems: totalWishlistItems } = useWishlist();
+  const { toast } = useToast();
   const [keyword, setKeyword] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [categories, setCategories] = useState(STATIC_CATEGORIES);
   const [currentAnnounce, setCurrentAnnounce] = useState(0);
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  const handleCopyCode = (code, e) => {
+    if (e) e.stopPropagation();
+    try {
+      if (navigator && navigator.clipboard) {
+        navigator.clipboard.writeText(code);
+      }
+      setCopiedCode(code);
+      toast.success(`Đã sao chép mã ${code}! Nhập tại giỏ hàng để nhận ưu đãi nhé 🎉`);
+      setTimeout(() => setCopiedCode(null), 2500);
+    } catch {
+      toast.info(`Mã ưu đãi của bạn là: ${code}`);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -120,27 +137,44 @@ export const Navbar = () => {
             </span>
             <div
               key={currentAnnounce}
+              onClick={() => handleCopyCode(ANNOUNCEMENTS[currentAnnounce].code)}
+              title="Nhấn để sao chép mã ưu đãi này"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
                 animation: 'toastSlideIn 0.4s ease',
-                fontSize: '12.5px'
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                userSelect: 'none'
               }}
             >
               <span>{ANNOUNCEMENTS[currentAnnounce].icon} {ANNOUNCEMENTS[currentAnnounce].text}</span>
               <span
                 style={{
-                  backgroundColor: 'rgba(245, 158, 11, 0.22)',
-                  color: '#fbbf24',
+                  backgroundColor: copiedCode === ANNOUNCEMENTS[currentAnnounce].code ? '#15803d' : 'rgba(245, 158, 11, 0.22)',
+                  color: copiedCode === ANNOUNCEMENTS[currentAnnounce].code ? '#ffffff' : '#fbbf24',
                   padding: '1px 8px',
                   borderRadius: '4px',
                   fontSize: '11px',
                   fontWeight: '800',
-                  letterSpacing: '0.5px'
+                  letterSpacing: '0.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s ease',
+                  border: copiedCode === ANNOUNCEMENTS[currentAnnounce].code ? '1px solid #22c55e' : '1px solid rgba(245, 158, 11, 0.35)'
                 }}
               >
-                MÃ: {ANNOUNCEMENTS[currentAnnounce].code}
+                {copiedCode === ANNOUNCEMENTS[currentAnnounce].code ? (
+                  <>
+                    <Check size={11} strokeWidth={3} /> ĐÃ CHÉP
+                  </>
+                ) : (
+                  <>
+                    MÃ: {ANNOUNCEMENTS[currentAnnounce].code} <Copy size={11} style={{ opacity: 0.8 }} />
+                  </>
+                )}
               </span>
             </div>
           </div>

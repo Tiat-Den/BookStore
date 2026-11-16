@@ -24,6 +24,7 @@ import { AdminDashboard, AdminBooks, AdminCategories, AdminOrders, AdminCoupons 
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminChatbot } from './pages/admin/AdminChatbot';
 import { EmployeeDashboard } from './pages/employee/EmployeePages';
+import { NotFound } from './pages/NotFound';
 
 // Tự động cuộn trang lên đầu mỗi khi chuyển route hoặc đổi danh mục / bộ lọc URL
 const ScrollToTop = () => {
@@ -151,6 +152,9 @@ export function App() {
                       <AdminOrders />
                     </ProtectedRoute>
                   } />
+
+                  {/* 404 Fallback Route */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </ErrorBoundary>
             </main>
