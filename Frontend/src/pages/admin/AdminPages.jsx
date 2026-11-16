@@ -4,6 +4,7 @@ import { BookOpen, FolderTree, ShoppingBag, Plus, Trash2, Edit, Check, X, Shield
 import { bookService, categoryService, orderService, reportService } from '../../services/catalogAndOrderServices';
 import { LoadingSpinner } from '../../components/UIComponents';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 export const renderOrderStatusBadge = (status) => {
   switch (status) {
@@ -432,6 +433,7 @@ export const AdminDashboard = () => {
 };
 
 export const AdminBooks = () => {
+  const { toast } = useToast();
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -542,11 +544,11 @@ export const AdminBooks = () => {
     }
 
     if (res.success) {
-      alert(editingBookId ? 'Cập nhật thông tin sách thành công!' : 'Tạo sách mới thành công!');
+      toast.success(editingBookId ? 'Cập nhật thông tin sách thành công!' : 'Tạo sách mới thành công!');
       setShowModal(false);
       fetchBooks();
     } else {
-      alert(res.message || 'Thao tác không thành công.');
+      toast.error(res.message || 'Thao tác không thành công.');
     }
   };
 
@@ -554,10 +556,10 @@ export const AdminBooks = () => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa cuốn sách này không?')) return;
     const res = await bookService.deleteBook(id);
     if (res.success) {
-      alert('Đã xóa mềm sách thành công.');
+      toast.success('Đã xóa mềm sách thành công.');
       fetchBooks();
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể xóa sách.');
     }
   };
 
@@ -801,6 +803,7 @@ export const AdminBooks = () => {
 };
 
 export const AdminCategories = () => {
+  const { toast } = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -866,7 +869,7 @@ export const AdminCategories = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      alert('Vui lòng nhập tên danh mục.');
+      toast.warning('Vui lòng nhập tên danh mục.');
       return;
     }
 
@@ -887,14 +890,14 @@ export const AdminCategories = () => {
       }
 
       if (res.success) {
-        alert(editingCategory ? 'Cập nhật danh mục thành công!' : 'Tạo mới danh mục thành công!');
+        toast.success(editingCategory ? 'Cập nhật danh mục thành công!' : 'Tạo mới danh mục thành công!');
         setShowModal(false);
         fetchCategories();
       } else {
-        alert(res.message || 'Thao tác không thành công.');
+        toast.error(res.message || 'Thao tác không thành công.');
       }
     } catch (err) {
-      alert(err.message || 'Lỗi xử lý yêu cầu.');
+      toast.error(err.message || 'Lỗi xử lý yêu cầu.');
     } finally {
       setSubmitting(false);
     }
@@ -902,7 +905,7 @@ export const AdminCategories = () => {
 
   const handleDelete = async (cat) => {
     if (cat.bookCount > 0) {
-      alert(`Không thể xóa danh mục "${cat.name}" vì hiện đang có ${cat.bookCount} sách liên kết.`);
+      toast.warning(`Không thể xóa danh mục "${cat.name}" vì hiện đang có ${cat.bookCount} sách liên kết.`);
       return;
     }
     if (!window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${cat.name}" không?`)) {
@@ -912,13 +915,13 @@ export const AdminCategories = () => {
     try {
       const res = await categoryService.deleteCategory(cat.id);
       if (res.success) {
-        alert('Xóa danh mục thành công!');
+        toast.success('Xóa danh mục thành công!');
         fetchCategories();
       } else {
-        alert(res.message || 'Không thể xóa danh mục.');
+        toast.error(res.message || 'Không thể xóa danh mục.');
       }
     } catch (err) {
-      alert(err.message || 'Lỗi khi xóa danh mục.');
+      toast.error(err.message || 'Lỗi khi xóa danh mục.');
     }
   };
 
@@ -1149,6 +1152,7 @@ export const AdminCategories = () => {
 };
 
 export const AdminOrders = () => {
+  const { toast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -1170,10 +1174,10 @@ export const AdminOrders = () => {
     if (!window.confirm(`Xác nhận chuyển trạng thái sang "${newStatus}"?`)) return;
     const res = await orderService.updateStatus(orderId, newStatus);
     if (res.success) {
-      alert('Cập nhật trạng thái đơn thành công!');
+      toast.success('Cập nhật trạng thái đơn thành công!');
       fetchOrders();
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể cập nhật trạng thái đơn.');
     }
   };
 
@@ -1242,6 +1246,7 @@ export const AdminOrders = () => {
 };
 
 export const AdminCoupons = () => {
+  const { toast } = useToast();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -1273,11 +1278,11 @@ export const AdminCoupons = () => {
     e.preventDefault();
     const res = await (await import('../../services/marketingServices')).couponService.createCoupon(formData);
     if (res.success) {
-      alert('Tạo mã giảm giá thành công!');
+      toast.success('Tạo mã giảm giá thành công!');
       setShowModal(false);
       fetchCoupons();
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể tạo mã giảm giá.');
     }
   };
 
@@ -1285,10 +1290,10 @@ export const AdminCoupons = () => {
     if (!window.confirm('Xác nhận xóa mã giảm giá này?')) return;
     const res = await (await import('../../services/marketingServices')).couponService.deleteCoupon(id);
     if (res.success) {
-      alert('Đã xóa mã giảm giá.');
+      toast.success('Đã xóa mã giảm giá.');
       fetchCoupons();
     } else {
-      alert(res.message);
+      toast.error(res.message || 'Không thể xóa mã giảm giá.');
     }
   };
 

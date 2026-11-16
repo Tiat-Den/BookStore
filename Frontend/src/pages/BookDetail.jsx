@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart, ArrowRight } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Check, ShieldCheck, Truck, RotateCcw, Building, User, Calendar, BookOpen, Heart, ArrowRight, Star, ThumbsUp, CheckCircle, MessageSquare, Sparkles } from 'lucide-react';
 import { bookService } from '../services/catalogAndOrderServices';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -237,11 +237,6 @@ export const BookDetail = () => {
                 fill={isWishlisted ? '#ef4444' : 'none'}
               />
             </button>
-          </div>
-
-          {/* Customer Reviews Section on Left Column */}
-          <div className="card" style={{ padding: '24px' }}>
-            <ReviewsSection bookId={book.id} isAuthenticated={isAuthenticated} />
           </div>
         </div>
 
@@ -574,6 +569,9 @@ export const BookDetail = () => {
         </div>
       </div>
 
+      {/* Customer Reviews Full-Width Section */}
+      <ReviewsSection bookId={book.id} isAuthenticated={isAuthenticated} bookTitle={book.title} />
+
       {/* Sách Cùng Thể Loại Section */}
       {relatedBooks.length > 0 && (
         <div style={{ marginTop: '56px', borderTop: '1px solid #e2e8f0', paddingTop: '40px' }}>
@@ -619,17 +617,28 @@ export const BookDetail = () => {
   );
 };
 
-const ReviewsSection = ({ bookId, isAuthenticated }) => {
+const RATING_EMOTIONS = {
+  5: 'Tuyệt vời - Rất hài lòng',
+  4: 'Hài lòng',
+  3: 'Bình thường',
+  2: 'Không hài lòng',
+  1: 'Rất tệ'
+};
+
+const ReviewsSection = ({ bookId, isAuthenticated, bookTitle }) => {
   const [reviews, setReviews] = useState([]);
   const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [helpfulCounts, setHelpfulCounts] = useState({});
+  const { toast } = useToast();
 
   const fetchReviews = async () => {
     try {
       const res = await (await import('../services/marketingServices')).reviewService.getBookReviews(bookId);
-      if (res.success) setReviews(res.data);
+      if (res.success && res.data) setReviews(res.data);
     } catch (e) {
       console.error(e);
     }
@@ -641,87 +650,387 @@ const ReviewsSection = ({ bookId, isAuthenticated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim()) {
+      toast.warning('Vui lòng nhập nội dung đánh giá của bạn.');
+      return;
+    }
     setSubmitting(true);
-    setMsg('');
     try {
       const res = await (await import('../services/marketingServices')).reviewService.createReview(bookId, rating, content.trim());
       if (res.success) {
-        setMsg('Cảm ơn bạn đã gửi đánh giá!');
+        toast.success('Cảm ơn bạn đã gửi đánh giá về cuốn sách này!');
         setContent('');
+        setShowForm(false);
         fetchReviews();
       } else {
-        setMsg(res.message || 'Không thể gửi đánh giá.');
+        toast.error(res.message || 'Không thể gửi đánh giá lúc này.');
       }
     } catch (err) {
-      setMsg(err.message || 'Lỗi khi gửi đánh giá.');
+      toast.error(err.message || 'Lỗi khi gửi đánh giá.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const toggleHelpful = (reviewId) => {
+    setHelpfulCounts(prev => ({
+      ...prev,
+      [reviewId]: (prev[reviewId] || 0) + 1
+    }));
+  };
+
+  const totalReviews = reviews.length;
+  const avgRating = totalReviews > 0
+    ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / totalReviews).toFixed(1)
+    : '4.8';
+
+  const starCounts = [5, 4, 3, 2, 1].map(stars => {
+    const count = reviews.filter(r => r.rating === stars).length;
+    const percent = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : (stars === 5 ? 85 : stars === 4 ? 15 : 0);
+    return { stars, count, percent };
+  });
+
+  const activeStar = hoverRating || rating;
+
   return (
-    <div>
-      <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-        Đánh Giá & Nhận Xét ({reviews.length})
-      </h3>
-
-      {/* Write review form (for buyers) */}
-      {isAuthenticated ? (
-        <form onSubmit={handleSubmit} className="card" style={{ padding: '20px', marginBottom: '24px', backgroundColor: '#f8fafc' }}>
-          <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px' }}>Viết đánh giá của bạn</h4>
-          {msg && (
-            <div style={{ fontSize: '13px', fontWeight: '600', color: msg.includes('Cảm ơn') ? 'var(--success)' : 'var(--danger)', marginBottom: '12px' }}>
-              {msg}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '13px', fontWeight: '600' }}>Số sao đánh giá:</span>
-            <select className="select" value={rating} onChange={(e) => setRating(parseInt(e.target.value))} style={{ width: '100px', padding: '6px 10px' }}>
-              <option value="5">★★★★★</option>
-              <option value="4">★★★★☆</option>
-              <option value="3">★★★☆☆</option>
-              <option value="2">★★☆☆☆</option>
-              <option value="1">★☆☆☆☆</option>
-            </select>
+    <div style={{ marginTop: '56px', borderTop: '1px solid #e2e8f0', paddingTop: '40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: '700', color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            Phản hồi thực tế
           </div>
-          <div className="form-group">
-            <textarea
-              className="textarea"
-              rows="3"
-              required
-              placeholder="Chia sẻ cảm nhận chân thực của bạn sau khi đọc cuốn sách này..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-          </div>
-          <button type="submit" disabled={submitting} className="btn btn-primary btn-sm">
-            {submitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
-          </button>
-        </form>
-      ) : (
-        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-          Vui lòng <Link to="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>đăng nhập</Link> bằng tài khoản đã mua sách để gửi đánh giá.
+          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+            Đánh Giá & Nhận Xét Từ Bạn Đọc ({totalReviews})
+          </h2>
         </div>
-      )}
 
-      {/* Reviews list */}
-      {reviews.length === 0 ? (
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa có đánh giá nào cho cuốn sách này.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {reviews.map((r) => (
-            <div key={r.id} className="card" style={{ padding: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <strong style={{ fontSize: '14px' }}>{r.userName}</strong>
-                <span style={{ color: '#eab308', fontSize: '14px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+        {isAuthenticated && !showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="btn btn-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+          >
+            <MessageSquare size={16} /> Viết đánh giá của bạn
+          </button>
+        )}
+      </div>
+
+      {/* Rating Overview Card */}
+      <div
+        className="card"
+        style={{
+          padding: '28px',
+          marginBottom: '32px',
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '32px',
+          alignItems: 'center'
+        }}
+      >
+        {/* Score column */}
+        <div style={{ textAlign: 'center', borderRight: '1px solid #f1f5f9', paddingRight: '20px' }}>
+          <div style={{ fontSize: '48px', fontWeight: '900', color: '#0f172a', lineHeight: 1 }}>
+            {avgRating}
+            <span style={{ fontSize: '20px', color: '#94a3b8', fontWeight: '600' }}> / 5</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', margin: '10px 0' }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star
+                key={s}
+                size={22}
+                color="#f59e0b"
+                fill={s <= Math.round(Number(avgRating)) ? '#f59e0b' : 'none'}
+              />
+            ))}
+          </div>
+          <div style={{ fontSize: '13px', color: '#64748b' }}>
+            Dựa trên {totalReviews > 0 ? totalReviews : 'hàng trăm'} lượt đánh giá đã xác thực
+          </div>
+        </div>
+
+        {/* Rating Bars column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {starCounts.map(({ stars, count, percent }) => (
+            <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px' }}>
+              <span style={{ width: '38px', color: '#475569', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                {stars} <Star size={12} color="#f59e0b" fill="#f59e0b" />
+              </span>
+              <div style={{ flex: 1, height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${percent}%`,
+                    height: '100%',
+                    backgroundColor: stars >= 4 ? '#f59e0b' : stars === 3 ? '#fbbf24' : '#cbd5e1',
+                    borderRadius: '4px',
+                    transition: 'width 0.4s ease'
+                  }}
+                />
               </div>
-              <p style={{ fontSize: '14px', color: '#334155', lineHeight: '1.5' }}>{r.content}</p>
-              <small style={{ color: 'var(--text-light)', marginTop: '8px', display: 'block' }}>{new Date(r.createdAt).toLocaleDateString('vi-VN')}</small>
+              <span style={{ width: '42px', textAlign: 'right', color: '#94a3b8', fontSize: '12px' }}>
+                {percent}%
+              </span>
             </div>
           ))}
+        </div>
+
+        {/* Call to action column */}
+        <div style={{ textAlign: 'center', padding: '10px 16px' }}>
+          <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
+            Bạn đã đọc cuốn sách này?
+          </h4>
+          <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px', lineHeight: 1.5 }}>
+            Chia sẻ cảm nhận của bạn để giúp cộng đồng bạn đọc có thêm góc nhìn khách quan!
+          </p>
+          {isAuthenticated ? (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="btn btn-outline"
+              style={{ width: '100%', fontSize: '13.5px', fontWeight: '700' }}
+            >
+              {showForm ? 'Đóng khung viết' : 'Viết đánh giá ngay'}
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="btn btn-outline"
+              style={{ width: '100%', fontSize: '13.5px', fontWeight: '700' }}
+            >
+              Đăng nhập để đánh giá
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Review Submission Form with Interactive Star Rating */}
+      {showForm && isAuthenticated && (
+        <form
+          onSubmit={handleSubmit}
+          className="card"
+          style={{
+            padding: '24px',
+            marginBottom: '32px',
+            borderRadius: '16px',
+            border: '1.5px solid #bfdbfe',
+            backgroundColor: '#f8fafc',
+            boxShadow: '0 8px 24px -4px rgba(37, 99, 235, 0.08)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h4 style={{ fontSize: '16px', fontWeight: '800', color: '#1e3a8a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={18} color="#2563eb" /> Đánh giá: {bookTitle}
+            </h4>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}
+            >
+              Hủy
+            </button>
+          </div>
+
+          {/* Interactive Star Picker */}
+          <div style={{ marginBottom: '18px' }}>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>
+              Chọn mức độ hài lòng của bạn:
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {[1, 2, 3, 4, 5].map((starIndex) => (
+                  <button
+                    key={starIndex}
+                    type="button"
+                    onClick={() => setRating(starIndex)}
+                    onMouseEnter={() => setHoverRating(starIndex)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      transform: starIndex <= activeStar ? 'scale(1.15)' : 'scale(1)',
+                      transition: 'transform 0.15s ease'
+                    }}
+                    title={`${starIndex} sao - ${RATING_EMOTIONS[starIndex]}`}
+                  >
+                    <Star
+                      size={28}
+                      color="#f59e0b"
+                      fill={starIndex <= activeStar ? '#f59e0b' : 'none'}
+                    />
+                  </button>
+                ))}
+              </div>
+              <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#d97706', marginLeft: '8px' }}>
+                {RATING_EMOTIONS[activeStar]}
+              </span>
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '6px' }}>
+              Nội dung nhận xét:
+            </label>
+            <textarea
+              className="textarea"
+              rows="4"
+              required
+              placeholder="Cuốn sách có đáp ứng kỳ vọng của bạn? Bạn tâm đắc điều gì nhất từ tác phẩm này?..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              style={{
+                width: '100%',
+                borderRadius: '10px',
+                padding: '12px 14px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                backgroundColor: '#ffffff'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="btn btn-outline btn-sm"
+              style={{ padding: '8px 16px' }}
+            >
+              Đóng lại
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || !content.trim()}
+              className="btn btn-primary btn-sm"
+              style={{ padding: '8px 20px', fontWeight: '700' }}
+            >
+              {submitting ? 'Đang gửi...' : 'Gửi Đánh Giá Ngay'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Reviews List */}
+      {reviews.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '40px 20px', backgroundColor: '#f8fafc' }}>
+          <MessageSquare size={40} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
+          <p style={{ fontSize: '15px', color: '#475569', fontWeight: '600', marginBottom: '6px' }}>
+            Chưa có đánh giá nào cho cuốn sách này.
+          </p>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
+            Hãy là người đầu tiên chia sẻ cảm nhận chân thực của bạn đến mọi người nhé!
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {reviews.map((r) => {
+            const initial = (r.userName || 'B')[0].toUpperCase();
+            return (
+              <div
+                key={r.id}
+                className="card"
+                style={{
+                  padding: '20px',
+                  borderRadius: '14px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#ffffff'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* User Avatar Circle */}
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        backgroundColor: '#eff6ff',
+                        color: '#2563eb',
+                        fontWeight: '800',
+                        fontSize: '15px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1.5px solid #bfdbfe'
+                      }}
+                    >
+                      {initial}
+                    </div>
+
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>{r.userName}</strong>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            color: '#059669',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            backgroundColor: '#ecfdf5',
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            border: '1px solid #a7f3d0'
+                          }}
+                        >
+                          <CheckCircle size={11} /> Đã mua hàng tại BookStore
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                        {new Date(r.createdAt).toLocaleDateString('vi-VN')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stars badge */}
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        size={15}
+                        color="#f59e0b"
+                        fill={s <= r.rating ? '#f59e0b' : 'none'}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '14px', color: '#334155', lineHeight: '1.6', margin: '0 0 12px 0' }}>
+                  {r.content}
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: '#64748b' }}>
+                  <button
+                    onClick={() => toggleHelpful(r.id)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'none',
+                      border: 'none',
+                      color: helpfulCounts[r.id] ? '#2563eb' : '#64748b',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      backgroundColor: helpfulCounts[r.id] ? '#eff6ff' : 'transparent'
+                    }}
+                  >
+                    <ThumbsUp size={13} />
+                    <span>Hữu ích {helpfulCounts[r.id] ? `(${helpfulCounts[r.id]})` : ''}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 };
+

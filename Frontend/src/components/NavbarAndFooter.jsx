@@ -17,6 +17,13 @@ import codLogo from '../assets/cod-logo.png';
 
 const POPULAR_SEARCHES = ['Đắc Nhân Tâm', 'Mắt Biếc', 'Sapiens', 'Tư Duy Nhanh & Chậm', 'Kinh Tế', 'Dế Mèn'];
 
+const ANNOUNCEMENTS = [
+  { icon: '🚚', text: 'Miễn phí vận chuyển toàn quốc từ 200.000đ', code: 'FREESHIP' },
+  { icon: '🎁', text: 'Giảm ngay 15% cho đơn hàng đầu tiên của bạn', code: 'BANMOI15' },
+  { icon: '⚡', text: 'Mọt sách cuối tuần: Giảm 20% đơn từ 300.000đ', code: 'MOTSACH20' },
+  { icon: '🎟️', text: 'Ưu đãi đặc quyền: Giảm 50.000đ đơn từ 250.000đ', code: 'BOOKSTORE50' }
+];
+
 const STATIC_CATEGORIES = [
   { name: 'Chính trị - Triết học', slug: 'chinh-tri---triet-hoc', icon: '🏛️' },
   { name: 'Văn học', slug: 'van-hoc', icon: '📖' },
@@ -38,6 +45,14 @@ export const Navbar = () => {
   const [policyOpen, setPolicyOpen] = useState(false);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [categories, setCategories] = useState(STATIC_CATEGORIES);
+  const [currentAnnounce, setCurrentAnnounce] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentAnnounce((prev) => (prev + 1) % ANNOUNCEMENTS.length);
+    }, 3600);
+    return () => clearInterval(timer);
+  }, []);
   const userMenuRef = useRef(null);
   const policyMenuRef = useRef(null);
   const catMenuRef = useRef(null);
@@ -99,11 +114,35 @@ export const Navbar = () => {
       {/* 1. Top Utility Announcement Bar */}
       <div className="top-utility-bar">
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#f59e0b', fontWeight: '700' }}>
-              <Tag size={13} /> ƯU ĐÃI HÔM NAY:
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '24px', overflow: 'hidden' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#f59e0b', fontWeight: '800', flexShrink: 0 }}>
+              <Tag size={13} /> ƯU ĐÃI HOT:
             </span>
-            <span>Freeship toàn quốc từ <strong>200.000đ</strong> (mã <strong>FREESHIP</strong>) | Giảm 15% cho bạn mới (mã <strong>BANMOI15</strong>)</span>
+            <div
+              key={currentAnnounce}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                animation: 'toastSlideIn 0.4s ease',
+                fontSize: '12.5px'
+              }}
+            >
+              <span>{ANNOUNCEMENTS[currentAnnounce].icon} {ANNOUNCEMENTS[currentAnnounce].text}</span>
+              <span
+                style={{
+                  backgroundColor: 'rgba(245, 158, 11, 0.22)',
+                  color: '#fbbf24',
+                  padding: '1px 8px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                MÃ: {ANNOUNCEMENTS[currentAnnounce].code}
+              </span>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px' }}>

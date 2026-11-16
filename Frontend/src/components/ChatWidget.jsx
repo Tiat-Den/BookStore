@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import chatService from '../services/chatService';
 import chatIcon from '../assets/chat-icon.svg';
@@ -12,6 +13,7 @@ import chatIcon from '../assets/chat-icon.svg';
 export default function ChatWidget() {
   const { user } = useAuth();
   const { refreshCart } = useCart();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -180,9 +182,10 @@ export default function ChatWidget() {
         if (currentConversationId === convId) {
           startNewConversation();
         }
+        toast.info('Đã xóa cuộc hội thoại.');
       }
     } catch (err) {
-      alert('Lỗi khi xóa hội thoại: ' + (err.message || err));
+      toast.error('Lỗi khi xóa hội thoại: ' + (err.message || err));
     }
   };
 
@@ -205,6 +208,11 @@ export default function ChatWidget() {
         }));
         if (refreshCart) refreshCart();
 
+        toast.success(`Đã thêm "${action.bookTitle}" vào giỏ hàng!`, {
+          actionText: 'Xem giỏ hàng',
+          actionLink: '/cart'
+        });
+
         setMessages((prev) => [
           ...prev,
           {
@@ -214,14 +222,14 @@ export default function ChatWidget() {
           }
         ]);
       } else {
-        alert(res.message || 'Không thể thêm sách vào giỏ hàng.');
+        toast.error(res.message || 'Không thể thêm sách vào giỏ hàng.');
         setCompletedActions((prev) => ({
           ...prev,
           [action.confirmationToken]: 'failed'
         }));
       }
     } catch (err) {
-      alert(err.message || 'Lỗi khi xác nhận hành động.');
+      toast.error(err.message || 'Lỗi khi xác nhận hành động.');
       setCompletedActions((prev) => ({
         ...prev,
         [action.confirmationToken]: 'failed'

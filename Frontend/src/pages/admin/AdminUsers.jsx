@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Users, UserPlus, Lock, Unlock, Shield, Search, CheckCircle, AlertTriangle, X, Edit, Trash2 } from 'lucide-react';
 import { userService } from '../../services/catalogAndOrderServices';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { LoadingSpinner } from '../../components/UIComponents';
 import { ManagementHeader } from './AdminPages';
 
 export const AdminUsers = () => {
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -111,7 +113,7 @@ export const AdminUsers = () => {
 
   const handleToggleStatus = async (user) => {
     if (user.id === currentUser?.id) {
-      alert('Bạn không thể tự khóa tài khoản của chính mình!');
+      toast.warning('Bạn không thể tự khóa tài khoản của chính mình!');
       return;
     }
 
@@ -125,19 +127,19 @@ export const AdminUsers = () => {
     try {
       const res = await userService.updateStatus(user.id, newStatus);
       if (res.success) {
-        setMsg({ text: `Đã ${actionText.toLowerCase()} tài khoản thành công!`, type: 'success' });
+        toast.success(`Đã ${actionText.toLowerCase()} tài khoản thành công!`);
         fetchUsers();
       } else {
-        setMsg({ text: res.message || 'Không thể cập nhật trạng thái.', type: 'error' });
+        toast.error(res.message || 'Không thể cập nhật trạng thái.');
       }
     } catch (err) {
-      setMsg({ text: err.message || 'Lỗi khi cập nhật trạng thái tài khoản.', type: 'error' });
+      toast.error(err.message || 'Lỗi khi cập nhật trạng thái tài khoản.');
     }
   };
 
   const handleDeleteUser = async (user) => {
     if (user.id === currentUser?.id) {
-      alert('Bạn không thể tự xóa tài khoản của chính mình!');
+      toast.warning('Bạn không thể tự xóa tài khoản của chính mình!');
       return;
     }
 

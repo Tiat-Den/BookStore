@@ -1,23 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Package, Clock, CheckCircle2, XCircle, Truck, AlertCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle2, XCircle, Truck, AlertCircle, X, AlertTriangle } from 'lucide-react';
 import { orderService } from '../services/catalogAndOrderServices';
 import { LoadingSpinner } from '../components/UIComponents';
+import { useToast } from '../context/ToastContext';
+import EmptyState from '../components/EmptyState';
+
+const CANCEL_REASONS = [
+  'Tôi muốn thay đổi địa chỉ hoặc số điện thoại nhận hàng',
+  'Tôi muốn đổi phương thức thanh toán / áp dụng voucher khác',
+  'Tôi đặt nhầm cuốn sách / muốn chọn tác phẩm khác',
+  'Thời gian giao hàng dự kiến không phù hợp',
+  'Tôi tìm được giá tốt hơn ở nơi khác',
+  'Lý do khác'
+];
 
 export const Orders = () => {
   const [searchParams] = useSearchParams();
   const successCode = searchParams.get('success');
+  const { toast } = useToast();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cancellingId, setCancellingId] = useState(null);
+  const [cancellingOrder, setCancellingOrder] = useState(null); // Order to be cancelled
+  const [selectedReason, setSelectedReason] = useState(CANCEL_REASONS[0]);
+  const [customReason, setCustomReason] = useState('');
+  const [submittingCancel, setSubmittingCancel] = useState(false);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const res = await orderService.getMyOrders();
       if (res.success && res.data) {
-        setOrders(res.data.items);
+        setOrders(res.data.items || []);
       }
     } catch (err) {
       console.error('Lỗi khi tải đơn hàng:', err);
@@ -32,23 +47,30 @@ export const Orders = () => {
 
   const formatPrice = (val) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
-  const handleCancelOrder = async (orderId) => {
-    const reason = prompt('Vui lòng nhập lý do hủy đơn hàng:');
-    if (!reason || !reason.trim()) return;
+  const handleOpenCancelModal = (order) => {
+    setCancellingOrder(order);
+    setSelectedReason(CANCEL_REASONS[0]);
+    setCustomReason('');
+  };
 
-    setCancellingId(orderId);
+  const handleConfirmCancel = async () => {
+    if (!cancellingOrder) return;
+    const finalReason = selectedReason === 'Lý do khác' ? (customReason.trim() || 'Lý do cá nhân') : selectedReason;
+
+    setSubmittingCancel(true);
     try {
-      const res = await orderService.cancelOrder(orderId, reason.trim());
+      const res = await orderService.cancelOrder(cancellingOrder.id, finalReason);
       if (res.success) {
-        alert('Hủy đơn hàng thành công và đã hoàn trả lại số lượng tồn kho.');
+        toast.success(`Đã hủy đơn hàng #${cancellingOrder.orderCode} thành công và hoàn trả số lượng sách về kho.`);
+        setCancellingOrder(null);
         fetchOrders();
       } else {
-        alert(res.message);
+        toast.error(res.message || 'Không thể hủy đơn hàng lúc này.');
       }
     } catch (err) {
-      alert(err.message || 'Lỗi khi hủy đơn hàng.');
+      toast.error(err.message || 'Lỗi khi hủy đơn hàng.');
     } finally {
-      setCancellingId(null);
+      setSubmittingCancel(false);
     }
   };
 
@@ -90,14 +112,7 @@ export const Orders = () => {
       {loading ? (
         <LoadingSpinner text="Đang tải danh sách đơn hàng..." />
       ) : orders.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <Package size={56} color="var(--text-light)" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Chưa có đơn hàng nào</h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-            Bạn chưa thực hiện đơn đặt hàng nào trên hệ thống.
-          </p>
-          <Link to="/books" className="btn btn-primary">Khám phá sách ngay</Link>
-        </div>
+        <EmptyState type="orders" />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {orders.map((o) => (
@@ -148,17 +163,156 @@ export const Orders = () => {
 
                   {(o.orderStatus === 'PENDING' || o.orderStatus === 'CONFIRMED') && (
                     <button
-                      onClick={() => handleCancelOrder(o.id)}
-                      disabled={cancellingId === o.id}
+                      onClick={() => handleOpenCancelModal(o)}
                       className="btn btn-danger btn-sm"
                     >
-                      {cancellingId === o.id ? 'Đang hủy...' : 'Hủy đơn hàng'}
+                      Hủy đơn hàng
                     </button>
                   )}
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {cancellingOrder && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => !submittingCancel && setCancellingOrder(null)}
+        >
+          <div
+            className="card"
+            style={{
+              width: '100%',
+              maxWidth: '520px',
+              padding: '28px',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.35)',
+              backgroundColor: '#ffffff'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={22} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+                    Xác nhận hủy đơn hàng
+                  </h3>
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>
+                    Mã đơn: <strong style={{ color: '#2563eb' }}>{cancellingOrder.orderCode}</strong>
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setCancellingOrder(null)}
+                disabled={submittingCancel}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Warning Note */}
+            <div style={{ padding: '12px 16px', backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px', fontSize: '13px', color: '#92400e', marginBottom: '20px', lineHeight: 1.5 }}>
+              Số lượng sách trong đơn sẽ được tự động hoàn lại vào kho. Bạn có thể đặt mua lại bất cứ lúc nào!
+            </div>
+
+            {/* Reasons Radio List */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '13.5px', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '10px' }}>
+                Vui lòng chọn lý do hủy đơn:
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {CANCEL_REASONS.map((r, idx) => (
+                  <label
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: selectedReason === r ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                      backgroundColor: selectedReason === r ? '#eff6ff' : '#f8fafc',
+                      cursor: 'pointer',
+                      fontSize: '13.5px',
+                      color: selectedReason === r ? '#1e40af' : '#334155',
+                      fontWeight: selectedReason === r ? '600' : '400',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="cancelReason"
+                      value={r}
+                      checked={selectedReason === r}
+                      onChange={(e) => setSelectedReason(e.target.value)}
+                      style={{ accentColor: '#2563eb' }}
+                    />
+                    <span>{r}</span>
+                  </label>
+                ))}
+              </div>
+
+              {selectedReason === 'Lý do khác' && (
+                <div style={{ marginTop: '12px' }}>
+                  <textarea
+                    rows="3"
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder="Nhập chi tiết lý do của bạn..."
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setCancellingOrder(null)}
+                disabled={submittingCancel}
+                className="btn btn-outline"
+                style={{ padding: '9px 18px', fontSize: '13.5px' }}
+              >
+                Giữ lại đơn hàng
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                disabled={submittingCancel}
+                className="btn btn-danger"
+                style={{ padding: '9px 20px', fontSize: '13.5px', fontWeight: '700' }}
+              >
+                {submittingCancel ? 'Đang xử lý...' : 'Xác nhận hủy'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

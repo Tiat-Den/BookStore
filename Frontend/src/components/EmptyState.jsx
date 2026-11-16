@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Truck, ShieldCheck, RefreshCw, Award } from 'lucide-react';
+import { ArrowRight, Truck, ShieldCheck, RefreshCw, Award, Package } from 'lucide-react';
 
 const SUGGESTED_CATEGORIES = [
   { name: 'Văn học', slug: 'van-hoc', icon: '📖' },
@@ -19,14 +19,27 @@ export const EmptyState = ({
   buttonLink = '/books'
 }) => {
   const isWishlist = type === 'wishlist';
+  const isOrders = type === 'orders';
 
   const defaultTitle = isWishlist
     ? 'Danh sách yêu thích của bạn đang còn trống!'
+    : isOrders
+    ? 'Bạn chưa có đơn đặt hàng nào!'
     : 'Giỏ hàng của bạn đang trống trơn!';
 
   const defaultSubtitle = isWishlist
     ? 'Lưu lại những tựa sách bạn say mê bằng cách nhấn vào biểu tượng trái tim để dễ dàng tìm lại và mua sắm bất cứ khi nào bạn muốn.'
+    : isOrders
+    ? 'Hàng ngàn cuốn sách hay đang chờ bạn khám phá. Hãy chọn mua cuốn sách yêu thích để chúng tôi phục vụ bạn nhé!'
     : 'Hàng ngàn cuốn sách hấp dẫn từ Văn học, Kinh tế, Kỹ năng sống đến Thiếu nhi đang chờ bạn đón đọc cùng nhiều voucher freeship!';
+
+  const badgeColor = isWishlist ? '#fff1f2' : isOrders ? '#fef3c7' : '#eff6ff';
+  const badgeTextColor = isWishlist ? '#e11d48' : isOrders ? '#d97706' : '#2563eb';
+  const badgeLabel = isWishlist
+    ? '💖 Danh sách yêu thích trống'
+    : isOrders
+    ? '📦 Lịch sử đơn hàng trống'
+    : '🛒 Giỏ hàng chưa có sách';
 
   return (
     <div
@@ -58,18 +71,14 @@ export const EmptyState = ({
               </linearGradient>
             </defs>
 
-            {/* Pastel background blob */}
             <circle cx="100" cy="100" r="82" fill="url(#wishlistBgGrad)" />
 
-            {/* Floating Sparkles & Small Hearts */}
             <path d="M42 68L44 62L50 60L44 58L42 52L40 58L34 60L40 62L42 68Z" fill="#fb7185" opacity="0.85" />
             <path d="M162 52L163.5 47.5L168 46L163.5 44.5L162 40L160.5 44.5L156 46L160.5 47.5L162 52Z" fill="#fda4af" />
             <path d="M154 135L155.5 131L160 129.5L155.5 128L154 123.5L152.5 128L148 129.5L152.5 131L154 135Z" fill="#fb7185" />
 
-            {/* Little floating heart */}
             <path d="M48 120 C48 114 55 110 59 115 C63 110 70 114 70 120 C70 128 59 135 59 135 C59 135 48 128 48 120 Z" fill="#fda4af" />
 
-            {/* Open Book Base */}
             <rect x="52" y="112" width="46" height="32" rx="4" transform="rotate(-6 52 112)" fill="#3b82f6" />
             <rect x="50" y="110" width="46" height="32" rx="4" transform="rotate(-6 50 110)" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
             <line x1="56" y1="118" x2="86" y2="115" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
@@ -80,17 +89,53 @@ export const EmptyState = ({
             <line x1="112" y1="115" x2="142" y2="118" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
             <line x1="112" y1="123" x2="138" y2="126" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
 
-            {/* Big Cute Center Heart Character */}
             <path d="M100 50 C80 32 50 50 50 78 C50 106 90 128 100 134 C110 128 150 106 150 78 C150 50 120 32 100 50 Z" fill="url(#heartGrad)" filter="drop-shadow(0 6px 12px rgba(225, 29, 72, 0.28))" />
 
-            {/* Kawaii Face on Heart */}
             <ellipse cx="88" cy="80" rx="3.5" ry="4.5" fill="#ffffff" />
             <ellipse cx="112" cy="80" rx="3.5" ry="4.5" fill="#ffffff" />
-            {/* Cute Rosy Cheeks */}
             <circle cx="80" cy="89" r="4.5" fill="#fecdd3" opacity="0.9" />
             <circle cx="120" cy="89" r="4.5" fill="#fecdd3" opacity="0.9" />
-            {/* Cheerful Smile */}
             <path d="M96 87 Q100 93 104 87" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          </svg>
+        ) : isOrders ? (
+          /* Cute Order / Parcel Illustration */
+          <svg viewBox="0 0 200 200" width="160" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="orderBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fef3c7" />
+                <stop offset="100%" stopColor="#fed7aa" />
+              </linearGradient>
+              <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f59e0b" />
+                <stop offset="100%" stopColor="#d97706" />
+              </linearGradient>
+            </defs>
+
+            <circle cx="100" cy="100" r="82" fill="url(#orderBgGrad)" />
+
+            {/* Sparkles */}
+            <path d="M42 64L44 58L50 56L44 54L42 48L40 54L34 56L40 58L42 64Z" fill="#f59e0b" opacity="0.85" />
+            <path d="M162 60L163.5 55.5L168 54L163.5 52.5L162 48L160.5 52.5L156 54L160.5 55.5L162 60Z" fill="#fbbf24" />
+            <circle cx="156" cy="125" r="4" fill="#fde68a" />
+            <circle cx="45" cy="135" r="5" fill="#fde68a" />
+
+            {/* Cute Parcel Box */}
+            <rect x="55" y="70" width="90" height="75" rx="14" fill="url(#boxGrad)" filter="drop-shadow(0 8px 16px rgba(217, 119, 6, 0.3))" />
+            {/* Box Tape */}
+            <rect x="88" y="70" width="24" height="75" fill="#fbbf24" opacity="0.9" />
+            <path d="M55 92L145 92" stroke="#b45309" strokeWidth="2.5" strokeDasharray="4 3" />
+
+            {/* Kawaii Face on Box */}
+            <ellipse cx="86" cy="112" rx="3.5" ry="4.5" fill="#ffffff" />
+            <ellipse cx="114" cy="112" rx="3.5" ry="4.5" fill="#ffffff" />
+            <circle cx="78" cy="118" r="4.5" fill="#fde68a" opacity="0.95" />
+            <circle cx="122" cy="118" r="4.5" fill="#fde68a" opacity="0.95" />
+            <path d="M96 117 Q100 123 104 117" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+            {/* Ribbon Bow on top */}
+            <path d="M100 68 C90 52 75 58 84 68 Z" fill="#ef4444" />
+            <path d="M100 68 C110 52 125 58 116 68 Z" fill="#ef4444" />
+            <circle cx="100" cy="68" r="5" fill="#b91c1c" />
           </svg>
         ) : (
           /* Cute Shopping Cart Mascot Illustration */
@@ -106,37 +151,28 @@ export const EmptyState = ({
               </linearGradient>
             </defs>
 
-            {/* Pastel background blob */}
             <circle cx="100" cy="100" r="82" fill="url(#cartBgGrad)" />
 
-            {/* Floating Sparkles & Books */}
             <path d="M38 72L40 66L46 64L40 62L38 56L36 62L30 64L36 66L38 72Z" fill="#3b82f6" opacity="0.8" />
             <path d="M165 60L166.5 55.5L171 54L166.5 52.5L165 48L163.5 52.5L159 54L163.5 55.5L165 60Z" fill="#60a5fa" />
             <circle cx="158" cy="120" r="4" fill="#93c5fd" />
             <circle cx="44" cy="130" r="5" fill="#bfdbfe" />
 
-            {/* Small book peeking out with red bookmark ribbon */}
             <rect x="70" y="44" width="34" height="42" rx="4" transform="rotate(-12 70 44)" fill="#f59e0b" />
             <rect x="74" y="46" width="28" height="38" rx="3" transform="rotate(-12 74 46)" fill="#fef3c7" />
             <line x1="78" y1="56" x2="96" y2="52" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
             <line x1="80" y1="64" x2="94" y2="61" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
-            {/* Bookmark ribbon */}
             <path d="M88 40L88 56L93 52L98 56L98 38" fill="#ef4444" />
 
-            {/* Shopping Cart Body with Kawaii Face */}
             <rect x="58" y="74" width="86" height="56" rx="14" fill="url(#cartBodyGrad)" filter="drop-shadow(0 6px 14px rgba(37, 99, 235, 0.28))" />
             <path d="M48 76L58 76" stroke="#1e40af" strokeWidth="5" strokeLinecap="round" />
-            
-            {/* Kawaii Cart Face */}
+
             <ellipse cx="88" cy="98" rx="3.5" ry="4.5" fill="#ffffff" />
             <ellipse cx="114" cy="98" rx="3.5" ry="4.5" fill="#ffffff" />
-            {/* Blushing Cheeks */}
             <circle cx="80" cy="106" r="4.5" fill="#93c5fd" opacity="0.9" />
             <circle cx="122" cy="106" r="4.5" fill="#93c5fd" opacity="0.9" />
-            {/* Warm Smile */}
             <path d="M97 104 Q101 110 105 104" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
-            {/* Wheels */}
             <circle cx="78" cy="142" r="10" fill="#1e293b" />
             <circle cx="78" cy="142" r="4" fill="#ffffff" />
             <circle cx="124" cy="142" r="10" fill="#1e293b" />
@@ -146,8 +182,8 @@ export const EmptyState = ({
       </div>
 
       {/* Badge Pill */}
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: isWishlist ? '#fff1f2' : '#eff6ff', color: isWishlist ? '#e11d48' : '#2563eb', padding: '6px 16px', borderRadius: '9999px', fontSize: '13px', fontWeight: '700', marginBottom: '16px' }}>
-        <span>{isWishlist ? '💖 Danh sách yêu thích trống' : '🛒 Giỏ hàng chưa có sách'}</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: badgeColor, color: badgeTextColor, padding: '6px 16px', borderRadius: '9999px', fontSize: '13px', fontWeight: '700', marginBottom: '16px' }}>
+        <span>{badgeLabel}</span>
       </div>
 
       {/* Main Title & Subtitle */}
@@ -262,7 +298,7 @@ export const EmptyState = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#64748b', fontSize: '12px', fontWeight: '600' }}>
           <Truck size={16} color="#2563eb" />
-          <span>Freeship đơn từ 250k</span>
+          <span>Freeship đơn từ 200k</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#64748b', fontSize: '12px', fontWeight: '600' }}>
           <ShieldCheck size={16} color="#16a34a" />

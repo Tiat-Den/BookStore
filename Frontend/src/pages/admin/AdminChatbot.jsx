@@ -6,8 +6,10 @@ import {
 import { ManagementHeader } from './AdminPages';
 import { LoadingSpinner } from '../../components/UIComponents';
 import chatService from '../../services/chatService';
+import { useToast } from '../../context/ToastContext';
 
 export const AdminChatbot = () => {
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     totalConversations: 0,
     totalMessages: 0,
@@ -94,7 +96,7 @@ export const AdminChatbot = () => {
         setConversationDetail(res.data);
       }
     } catch (err) {
-      alert('Lỗi tải chi tiết cuộc hội thoại: ' + (err.message || err));
+      toast.error('Lỗi tải chi tiết cuộc hội thoại: ' + (err.message || err));
     } finally {
       setLoadingDetail(false);
     }
@@ -108,6 +110,7 @@ export const AdminChatbot = () => {
     try {
       const res = await chatService.deleteAdminConversation(convId);
       if (res.success) {
+        toast.success('Đã xóa cuộc hội thoại thành công');
         setConversations((prev) => prev.filter((c) => c.id !== convId));
         setStats((prev) => ({
           ...prev,
@@ -118,10 +121,10 @@ export const AdminChatbot = () => {
           setConversationDetail(null);
         }
       } else {
-        alert(res.message || 'Xóa cuộc hội thoại thất bại.');
+        toast.error(res.message || 'Xóa cuộc hội thoại thất bại.');
       }
     } catch (err) {
-      alert('Lỗi khi xóa cuộc hội thoại: ' + (err.message || err));
+      toast.error('Lỗi khi xóa cuộc hội thoại: ' + (err.message || err));
     }
   };
 
@@ -136,11 +139,12 @@ export const AdminChatbot = () => {
       });
       if (res.success) {
         setStats((prev) => ({ ...prev, isAiEnabled: updatedStatus }));
+        toast.success(`Đã ${updatedStatus ? 'bật' : 'tắt'} AI Chatbot thành công`);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (err) {
-      alert('Lỗi cập nhật trạng thái Chatbot: ' + (err.message || err));
+      toast.error('Lỗi cập nhật trạng thái Chatbot: ' + (err.message || err));
       setSettings((prev) => ({ ...prev, isEnabled: !updatedStatus }));
     } finally {
       setSaving(false);
@@ -153,13 +157,14 @@ export const AdminChatbot = () => {
       setSaving(true);
       const res = await chatService.updateAdminSettings(settings);
       if (res.success) {
+        toast.success('Đã lưu cấu hình AI Chatbot thành công');
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
-        alert(res.message || 'Cập nhật thất bại.');
+        toast.error(res.message || 'Cập nhật thất bại.');
       }
     } catch (err) {
-      alert('Lỗi lưu cấu hình: ' + (err.message || err));
+      toast.error('Lỗi lưu cấu hình: ' + (err.message || err));
     } finally {
       setSaving(false);
     }
