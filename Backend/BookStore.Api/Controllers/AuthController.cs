@@ -54,6 +54,24 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("google-login")]
+    public async Task<ActionResult<ApiResponse<AuthResponseDto>>> GoogleLogin([FromBody] GoogleLoginRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return BadRequest(ApiResponse<AuthResponseDto>.Fail("Dữ liệu không hợp lệ.", errors));
+        }
+
+        var result = await _authService.GoogleLoginAsync(request);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> GetMe()

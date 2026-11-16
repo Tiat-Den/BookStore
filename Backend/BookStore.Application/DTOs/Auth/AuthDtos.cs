@@ -30,6 +30,12 @@ public class LoginRequestDto
     public string Password { get; set; } = string.Empty;
 }
 
+public class GoogleLoginRequestDto
+{
+    [Required(ErrorMessage = "Google ID Token không được để trống")]
+    public string IdToken { get; set; } = string.Empty;
+}
+
 public class AuthResponseDto
 {
     public string Token { get; set; } = string.Empty;

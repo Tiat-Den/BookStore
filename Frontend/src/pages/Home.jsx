@@ -497,7 +497,7 @@ export const Home = () => {
               DANH MỤC CHUYÊN SÂU
             </div>
             <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-              Khám Phá 9 Thể Loại Sách
+              Khám Phá 7 Thể Loại Sách
             </h2>
           </div>
           <Link to="/books" style={{ fontSize: '14px', fontWeight: '700', color: '#2563eb', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>

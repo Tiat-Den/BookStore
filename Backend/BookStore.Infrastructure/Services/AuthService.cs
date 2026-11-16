@@ -4,7 +4,11 @@ using BookStore.Application.Interfaces;
 using BookStore.Domain.Entities;
 using BookStore.Domain.Enums;
 using BookStore.Infrastructure.Data;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace BookStore.Infrastructure.Services;
 
@@ -13,12 +17,65 @@ public class AuthService : IAuthService
     private readonly BookStoreDbContext _context;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
-    public AuthService(BookStoreDbContext context, IJwtTokenGenerator jwtTokenGenerator, IEmailService emailService)
+    private static readonly HttpClient _googleHttpClient = new HttpClient(new SocketsHttpHandler
+    {
+        ConnectCallback = async (context, cancellationToken) =>
+        {
+            var entry = await System.Net.Dns.GetHostEntryAsync(context.DnsEndPoint.Host, System.Net.Sockets.AddressFamily.InterNetwork, cancellationToken);
+            var ip = entry.AddressList.FirstOrDefault() 
+                ?? throw new System.Net.Sockets.SocketException((int)System.Net.Sockets.SocketError.HostNotFound);
+
+            var socket = new System.Net.Sockets.Socket(System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            await socket.ConnectAsync(ip, context.DnsEndPoint.Port, cancellationToken);
+            return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+        }
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+
+    private class GoogleTokenInfoDto
+    {
+        [JsonPropertyName("iss")]
+        public string? Iss { get; set; }
+
+        [JsonPropertyName("sub")]
+        public string? Sub { get; set; }
+
+        [JsonPropertyName("aud")]
+        public string? Aud { get; set; }
+
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
+
+        [JsonPropertyName("email_verified")]
+        public string? EmailVerified { get; set; }
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("picture")]
+        public string? Picture { get; set; }
+
+        [JsonPropertyName("error")]
+        public string? Error { get; set; }
+
+        [JsonPropertyName("error_description")]
+        public string? ErrorDescription { get; set; }
+    }
+
+    public AuthService(
+        BookStoreDbContext context, 
+        IJwtTokenGenerator jwtTokenGenerator, 
+        IEmailService emailService,
+        IConfiguration configuration)
     {
         _context = context;
         _jwtTokenGenerator = jwtTokenGenerator;
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
@@ -162,6 +219,171 @@ public class AuthService : IAuthService
             Token = token,
             User = profile
         }, "Đăng nhập thành công!");
+    }
+
+    public async Task<ApiResponse<AuthResponseDto>> GoogleLoginAsync(GoogleLoginRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdToken))
+        {
+            return ApiResponse<AuthResponseDto>.Fail("Google token không hợp lệ.");
+        }
+
+        var googleClientId = _configuration["GoogleAuth:ClientId"] 
+            ?? "1031444664527-dusjts82h83rnhutsc44iu6537pdk0r9.apps.googleusercontent.com";
+
+        string email = string.Empty;
+        string fullName = string.Empty;
+
+        try
+        {
+            // Xác thực token trực tiếp với Google tokeninfo API qua kết nối IPv4 siêu tốc
+            var response = await _googleHttpClient.GetAsync($"https://oauth2.googleapis.com/tokeninfo?id_token={request.IdToken}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Token Google không hợp lệ hoặc đã hết hạn.");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var tokenInfo = JsonSerializer.Deserialize<GoogleTokenInfoDto>(json);
+
+            if (tokenInfo == null || !string.IsNullOrEmpty(tokenInfo.Error))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Xác thực Google thất bại: " + (tokenInfo?.ErrorDescription ?? "Token không hợp lệ."));
+            }
+
+            if (!string.Equals(tokenInfo.Aud, googleClientId, StringComparison.OrdinalIgnoreCase))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Token Google không khớp với Client ID của ứng dụng.");
+            }
+
+            if (string.IsNullOrWhiteSpace(tokenInfo.Email))
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Không thể lấy thông tin email từ Google.");
+            }
+
+            email = tokenInfo.Email.Trim().ToLowerInvariant();
+            fullName = !string.IsNullOrWhiteSpace(tokenInfo.Name) 
+                ? tokenInfo.Name.Trim() 
+                : email.Split('@')[0];
+        }
+        catch (Exception ex)
+        {
+            // Fallback nếu kết nối gặp lỗi ngoại lệ
+            try
+            {
+                var validationSettings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { googleClientId }
+                };
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, validationSettings);
+                if (payload == null || string.IsNullOrWhiteSpace(payload.Email))
+                {
+                    return ApiResponse<AuthResponseDto>.Fail("Không thể lấy thông tin email từ Google.");
+                }
+                email = payload.Email.Trim().ToLowerInvariant();
+                fullName = !string.IsNullOrWhiteSpace(payload.Name) ? payload.Name.Trim() : email.Split('@')[0];
+            }
+            catch
+            {
+                return ApiResponse<AuthResponseDto>.Fail("Xác thực tài khoản Google thất bại: " + ex.Message);
+            }
+        }
+
+        // Tìm người dùng trong DB
+        var user = await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+            .Include(u => u.Addresses)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+        if (user == null)
+        {
+            // Tự động tạo tài khoản mới nếu chưa tồn tại
+            var customerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "CUSTOMER");
+            if (customerRole == null)
+            {
+                customerRole = new Role
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "CUSTOMER",
+                    Description = "Khách hàng mua sách"
+                };
+                _context.Roles.Add(customerRole);
+                await _context.SaveChangesAsync();
+            }
+
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                FullName = fullName,
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N")),
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            user.UserRoles.Add(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = customerRole.Id,
+                Role = customerRole
+            });
+
+            user.Cart = new Cart
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            user.Wishlist = new Wishlist
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+        }
+
+        if (user.Status == UserStatus.Locked)
+        {
+            return ApiResponse<AuthResponseDto>.Fail("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
+
+        var roles = user.UserRoles.Select(ur => ur.Role.Name).Distinct().ToList();
+        var permissions = user.UserRoles
+            .SelectMany(ur => ur.Role.RolePermissions)
+            .Select(rp => rp.Permission.Code)
+            .Distinct()
+            .ToList();
+
+        var token = _jwtTokenGenerator.GenerateToken(user, roles, permissions);
+
+        var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault) ?? user.Addresses.FirstOrDefault();
+        var addressString = defaultAddr?.AddressLine;
+
+        var profile = new UserProfileDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Phone = user.Phone,
+            Address = addressString,
+            Status = user.Status.ToString(),
+            Roles = roles,
+            Permissions = permissions
+        };
+
+        return ApiResponse<AuthResponseDto>.Ok(new AuthResponseDto
+        {
+            Token = token,
+            User = profile
+        }, "Đăng nhập Google thành công!");
     }
 
     public async Task<ApiResponse<UserProfileDto>> GetProfileAsync(Guid userId)

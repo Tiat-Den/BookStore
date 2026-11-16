@@ -47,6 +47,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (idToken) => {
+    try {
+      const res = await authService.googleLogin(idToken);
+      if (res.success && res.data) {
+        setToken(res.data.token);
+        setUser(res.data.user);
+        localStorage.setItem('bookstore_token', res.data.token);
+        localStorage.setItem('bookstore_user', JSON.stringify(res.data.user));
+        return { success: true };
+      }
+      return { success: false, message: res.message || 'Đăng nhập Google thất bại' };
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Không thể đăng nhập bằng tài khoản Google.';
+      return { success: false, message };
+    }
+  };
+
   const register = async (fullName, email, phone, password) => {
     try {
       const res = await authService.register(fullName, email, phone, password);
@@ -93,6 +110,7 @@ export const AuthProvider = ({ children }) => {
       isAdmin,
       loading,
       login,
+      loginWithGoogle,
       register,
       logout,
       updateProfile,

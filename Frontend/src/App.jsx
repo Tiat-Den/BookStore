@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -44,19 +45,22 @@ const ScrollToTop = () => {
 };
 
 export function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '1031444664527-dusjts82h83rnhutsc44iu6537pdk0r9.apps.googleusercontent.com';
+
   return (
-    <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <BrowserRouter>
-            <ToastProvider>
-              <ScrollToTop />
-              <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-                <Navbar />
-              
-              <main style={{ flex: 1 }}>
-                <ErrorBoundary>
-                  <Routes>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <BrowserRouter>
+              <ToastProvider>
+                <ScrollToTop />
+                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                  <Navbar />
+                
+                <main style={{ flex: 1 }}>
+                  <ErrorBoundary>
+                    <Routes>
                   {/* Customer Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/books" element={<Books />} />
@@ -168,6 +172,7 @@ export function App() {
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:5193/api',
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }

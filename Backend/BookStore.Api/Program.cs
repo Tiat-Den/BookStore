@@ -32,7 +32,24 @@ builder.Services.AddScoped<BookStore.Application.Interfaces.IUserService, BookSt
 builder.Services.AddScoped<BookStore.Application.Interfaces.IEmailService, BookStore.Infrastructure.Services.EmailService>();
 
 // AI & Chat Services
-builder.Services.AddHttpClient<BookStore.Application.Interfaces.IAiService, BookStore.Infrastructure.Services.GeminiAiService>();
+builder.Services.AddHttpClient<BookStore.Application.Interfaces.IAiService, BookStore.Infrastructure.Services.GeminiAiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(20);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    ConnectCallback = async (context, cancellationToken) =>
+    {
+        // Ưu tiên kết nối IPv4 để tránh nghẽn timeout IPv6 với máy chủ Google
+        var entry = await System.Net.Dns.GetHostEntryAsync(context.DnsEndPoint.Host, System.Net.Sockets.AddressFamily.InterNetwork, cancellationToken);
+        var ip = entry.AddressList.FirstOrDefault() 
+            ?? throw new System.Net.Sockets.SocketException((int)System.Net.Sockets.SocketError.HostNotFound);
+
+        var socket = new System.Net.Sockets.Socket(System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+        await socket.ConnectAsync(ip, context.DnsEndPoint.Port, cancellationToken);
+        return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+    }
+});
 builder.Services.AddScoped<BookStore.Application.Interfaces.IBookSearchService, BookStore.Infrastructure.Services.BookSearchService>();
 builder.Services.AddScoped<BookStore.Application.Interfaces.IChatService, BookStore.Infrastructure.Services.ChatService>();
 

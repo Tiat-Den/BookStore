@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Lock, Mail, User, Phone, AlertCircle } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 export const Login = () => {
@@ -8,8 +9,30 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError('Không nhận được thông tin xác thực từ Google.');
+      return;
+    }
+    setGoogleLoading(true);
+    setError('');
+    try {
+      const res = await loginWithGoogle(credentialResponse.credential);
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.message || 'Đăng nhập Google thất bại.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Có lỗi xảy ra khi xác thực Google.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,7 +108,7 @@ export const Login = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleLoading}
             className="btn btn-primary"
             style={{ width: '100%', padding: '12px' }}
           >
@@ -98,6 +121,30 @@ export const Login = () => {
             </Link>
           </div>
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '10px' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>HOẶC</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '44px', justifyContent: 'center' }}>
+          {googleLoading ? (
+            <div style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+              Đang xác thực với Google...
+            </div>
+          ) : (
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Đăng nhập Google thất bại. Vui lòng thử lại!')}
+              shape="rectangular"
+              theme="outline"
+              size="large"
+              text="signin_with"
+            />
+          )}
+        </div>
 
         <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>
           Chưa có tài khoản?{' '}
@@ -120,8 +167,30 @@ export const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError('Không nhận được thông tin xác thực từ Google.');
+      return;
+    }
+    setGoogleLoading(true);
+    setError('');
+    try {
+      const res = await loginWithGoogle(credentialResponse.credential);
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.message || 'Đăng nhập Google thất bại.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Có lỗi xảy ra khi xác thực Google.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -251,13 +320,37 @@ export const Register = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleLoading}
             className="btn btn-primary"
             style={{ width: '100%', padding: '12px' }}
           >
             {loading ? 'Đang đăng ký...' : 'Đăng Ký Tài Khoản'}
           </button>
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '10px' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>HOẶC</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '44px', justifyContent: 'center' }}>
+          {googleLoading ? (
+            <div style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+              Đang xác thực với Google...
+            </div>
+          ) : (
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Đăng ký / Đăng nhập Google thất bại. Vui lòng thử lại!')}
+              shape="rectangular"
+              theme="outline"
+              size="large"
+              text="signup_with"
+            />
+          )}
+        </div>
 
         <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
           Đã có tài khoản?{' '}

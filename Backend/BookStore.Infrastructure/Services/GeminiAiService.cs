@@ -20,7 +20,7 @@ public class GeminiAiService : IAiService
     private readonly string _model;
     private readonly ILogger<GeminiAiService> _logger;
 
-    private readonly string[] _fallbackModels = new[] { "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.5-flash" };
+    private readonly string[] _fallbackModels = new[] { "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-latest" };
 
     public GeminiAiService(
         HttpClient httpClient,
@@ -32,7 +32,7 @@ public class GeminiAiService : IAiService
         _apiKey = configuration["GeminiSettings:ApiKey"] 
             ?? configuration["Gemini:ApiKey"] 
             ?? string.Empty;
-        _model = configuration["GeminiSettings:Model"] ?? "gemini-3.1-flash-lite";
+        _model = configuration["GeminiSettings:Model"] ?? "gemini-3.5-flash-lite";
     }
 
     public async Task<AiResponse> CompleteAsync(AiRequest request, CancellationToken ct = default)
