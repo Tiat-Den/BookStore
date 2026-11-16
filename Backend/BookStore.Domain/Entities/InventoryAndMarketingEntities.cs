@@ -130,3 +130,12 @@ public class AuditLog
     public string? UserAgent { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+
+public class NewsletterSubscriber
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Email { get; set; } = string.Empty;
+    public string? CouponCode { get; set; }
+    public DateTime SubscribedAt { get; set; } = DateTime.UtcNow;
+    public bool IsActive { get; set; } = true;
+}

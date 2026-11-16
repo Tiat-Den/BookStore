@@ -22,9 +22,6 @@ public class BookService : IBookService
     {
         var query = _context.Books
             .AsNoTracking()
-            .Include(b => b.Publisher)
-            .Include(b => b.BookAuthors).ThenInclude(ba => ba.Author)
-            .Include(b => b.BookCategories).ThenInclude(bc => bc.Category)
             .AsQueryable();
 
         // 1. Soft delete & Active status filter
@@ -52,18 +49,26 @@ public class BookService : IBookService
         if (filter.CategoryId.HasValue)
         {
             var catId = filter.CategoryId.Value;
-            var relatedCategoryIds = await _context.Categories
+            var catIds = _context.Categories
                 .Where(c => c.Id == catId || c.ParentId == catId)
-                .Select(c => c.Id)
-                .ToListAsync();
+                .Select(c => c.Id);
 
-            query = query.Where(b => b.BookCategories.Any(bc => relatedCategoryIds.Contains(bc.CategoryId)));
+            var bookIdsInCategory = _context.BookCategories
+                .Where(bc => catIds.Contains(bc.CategoryId))
+                .Select(bc => bc.BookId);
+
+            query = query.Where(b => bookIdsInCategory.Contains(b.Id));
         }
 
         // 4. Author filter
         if (filter.AuthorId.HasValue)
         {
-            query = query.Where(b => b.BookAuthors.Any(ba => ba.AuthorId == filter.AuthorId.Value));
+            var authorId = filter.AuthorId.Value;
+            var bookIdsWithAuthor = _context.BookAuthors
+                .Where(ba => ba.AuthorId == authorId)
+                .Select(ba => ba.BookId);
+
+            query = query.Where(b => bookIdsWithAuthor.Contains(b.Id));
         }
 
         // 5. Publisher filter
@@ -97,12 +102,83 @@ public class BookService : IBookService
         var page = filter.Page > 0 ? filter.Page : 1;
         var pageSize = filter.PageSize > 0 ? filter.PageSize : 12;
 
-        var books = await query
+        var rawBooks = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(b => new
+            {
+                b.Id,
+                b.ISBN,
+                b.Title,
+                b.Slug,
+                b.Description,
+                b.CoverImageUrl,
+                b.ImportPrice,
+                b.SalePrice,
+                b.DiscountPrice,
+                b.StockQuantity,
+                b.SoldQuantity,
+                b.PublisherId,
+                PublisherName = b.Publisher != null ? b.Publisher.Name : null,
+                b.PublishedYear,
+                b.PageCount,
+                b.Language,
+                b.Dimensions,
+                b.Weight,
+                b.Status,
+                b.IsDeleted,
+                b.CreatedAt,
+                b.UpdatedAt
+            })
             .ToListAsync();
 
-        var dtoList = books.Select(MapToDto).ToList();
+        var bookIds = rawBooks.Select(b => b.Id).ToList();
+
+        var authorsGroup = await _context.BookAuthors
+            .AsNoTracking()
+            .Where(ba => bookIds.Contains(ba.BookId))
+            .Select(ba => new { ba.BookId, ba.AuthorId, ba.Author.Name })
+            .ToListAsync();
+
+        var categoriesGroup = await _context.BookCategories
+            .AsNoTracking()
+            .Where(bc => bookIds.Contains(bc.BookId))
+            .Select(bc => new { bc.BookId, bc.CategoryId, bc.Category.Name, bc.Category.Slug })
+            .ToListAsync();
+
+        var dtoList = rawBooks.Select(b => new BookDto
+        {
+            Id = b.Id,
+            ISBN = b.ISBN,
+            Title = b.Title,
+            Slug = b.Slug,
+            Description = b.Description,
+            CoverImageUrl = b.CoverImageUrl,
+            ImportPrice = b.ImportPrice,
+            SalePrice = b.SalePrice,
+            DiscountPrice = b.DiscountPrice,
+            StockQuantity = b.StockQuantity,
+            SoldQuantity = b.SoldQuantity,
+            PublisherId = b.PublisherId,
+            PublisherName = b.PublisherName,
+            PublishedYear = b.PublishedYear,
+            PageCount = b.PageCount,
+            Language = b.Language,
+            Dimensions = b.Dimensions,
+            Weight = b.Weight,
+            Status = b.Status,
+            IsDeleted = b.IsDeleted,
+            CreatedAt = b.CreatedAt,
+            UpdatedAt = b.UpdatedAt,
+            Authors = authorsGroup
+                .Where(a => a.BookId == b.Id)
+                .Select(a => new AuthorBriefDto { Id = a.AuthorId, Name = a.Name })
+                .ToList(),
+            Categories = categoriesGroup
+                .Where(c => c.BookId == b.Id)
+                .Select(c => new CategoryBriefDto { Id = c.CategoryId, Name = c.Name, Slug = c.Slug })
+                .ToList()
+        }).ToList();
 
         var result = new PagedResult<BookDto>
         {

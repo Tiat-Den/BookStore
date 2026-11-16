@@ -378,7 +378,7 @@ export const Checkout = () => {
                   <img src={codLogo} alt="COD" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} />
                   <div>
                     <strong style={{ display: 'block', fontSize: '14px' }}>Thanh toán khi nhận hàng (COD)</strong>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bạn chỉ phải thanh toán tiền khi nhân viên giao sách tận nơi.</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Thanh toán tiền khi nhân viên giao sách tận nơi.</span>
                   </div>
                 </div>
               </label>
@@ -913,9 +913,6 @@ export const Checkout = () => {
             <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '8px' }}>
               Cổng Thanh Toán {paymentModal.paymentMethod === 'VNPAY' ? 'VNPay Sandbox' : 'Ví MoMo'}
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-              Mô phỏng quy trình xử lý thanh toán trực tuyến an toàn theo chuẩn thương mại điện tử
-            </p>
 
             {paymentModal.paymentMethod === 'VNPAY' && (
               <div style={{

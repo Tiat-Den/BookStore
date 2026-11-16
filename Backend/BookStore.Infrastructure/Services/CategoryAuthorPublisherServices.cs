@@ -5,20 +5,37 @@ using BookStore.Application.Utils;
 using BookStore.Domain.Entities;
 using BookStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BookStore.Infrastructure.Services;
 
 public class CategoryService : ICategoryService
 {
     private readonly BookStoreDbContext _context;
+    private readonly IMemoryCache _cache;
+    private const string CacheKeyActive = "categories_all_true";
+    private const string CacheKeyAll = "categories_all_false";
 
-    public CategoryService(BookStoreDbContext context)
+    public CategoryService(BookStoreDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
+    }
+
+    private void InvalidateCache()
+    {
+        _cache.Remove(CacheKeyActive);
+        _cache.Remove(CacheKeyAll);
     }
 
     public async Task<ApiResponse<List<CategoryDto>>> GetAllCategoriesAsync(bool activeOnly = true)
     {
+        var cacheKey = activeOnly ? CacheKeyActive : CacheKeyAll;
+        if (_cache.TryGetValue(cacheKey, out List<CategoryDto>? cachedList) && cachedList != null)
+        {
+            return ApiResponse<List<CategoryDto>>.Ok(cachedList);
+        }
+
         var query = _context.Categories
             .AsNoTracking()
             .Include(c => c.BookCategories)
@@ -55,6 +72,8 @@ public class CategoryService : ICategoryService
                     BookCount = sc.BookCategories.Count
                 }).ToList()
         }).ToList();
+
+        _cache.Set(cacheKey, result, TimeSpan.FromMinutes(10));
 
         return ApiResponse<List<CategoryDto>>.Ok(result);
     }
@@ -116,6 +135,7 @@ public class CategoryService : ICategoryService
 
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
+        InvalidateCache();
 
         return await GetCategoryByIdAsync(category.Id);
     }
@@ -133,6 +153,7 @@ public class CategoryService : ICategoryService
         category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        InvalidateCache();
         return await GetCategoryByIdAsync(id);
     }
 
@@ -147,6 +168,7 @@ public class CategoryService : ICategoryService
 
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
+        InvalidateCache();
         return ApiResponse<bool>.Ok(true, "Xóa danh mục thành công.");
     }
 }

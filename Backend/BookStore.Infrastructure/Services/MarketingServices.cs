@@ -205,10 +205,12 @@ public class WishlistService : IWishlistService
 public class CouponService : ICouponService
 {
     private readonly BookStoreDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public CouponService(BookStoreDbContext context)
+    public CouponService(BookStoreDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<ApiResponse<List<CouponDto>>> GetAllCouponsAsync()
@@ -362,5 +364,72 @@ public class CouponService : ICouponService
             DiscountAmount = discountAmount,
             Message = $"Áp dụng mã giảm giá thành công! Được giảm {discountAmount:N0}đ."
         });
+    }
+
+    public async Task<ApiResponse<SubscribeNewsletterResponseDto>> SubscribeNewsletterAsync(SubscribeNewsletterRequestDto request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        // Kiểm tra xem email này đã đăng ký trước đó chưa
+        var existing = await _context.NewsletterSubscribers.FirstOrDefaultAsync(s => s.Email.ToLower() == email);
+        if (existing != null)
+        {
+            return ApiResponse<SubscribeNewsletterResponseDto>.Fail("Email này đã đăng ký nhận bản tin và voucher 50.000đ trước đó rồi!");
+        }
+
+        // Tạo mã coupon riêng biệt cho người dùng (ví dụ: BS50K-ABCD)
+        var voucherCode = "BS50K-" + Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
+        decimal discountValue = 50000m;
+        decimal minOrderAmount = 150000m;
+
+        var coupon = new Coupon
+        {
+            Id = Guid.NewGuid(),
+            Code = voucherCode,
+            Name = $"Voucher 50K chào mừng thành viên mới ({email})",
+            Type = "FIXED_AMOUNT",
+            Value = discountValue,
+            MinimumOrderAmount = minOrderAmount,
+            UsageLimit = 1,
+            UsedCount = 0,
+            StartAt = DateTime.UtcNow,
+            EndAt = DateTime.UtcNow.AddDays(30),
+            IsActive = true
+        };
+
+        var subscriber = new NewsletterSubscriber
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            CouponCode = voucherCode,
+            SubscribedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        _context.Coupons.Add(coupon);
+        _context.NewsletterSubscribers.Add(subscriber);
+        await _context.SaveChangesAsync();
+
+        // Gửi email chào mừng kèm mã voucher (chạy ngầm, không làm chậm phản hồi)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _emailService.SendNewsletterWelcomeEmailAsync(email, voucherCode, discountValue, minOrderAmount);
+            }
+            catch
+            {
+                // Đã log bên trong EmailService
+            }
+        });
+
+        return ApiResponse<SubscribeNewsletterResponseDto>.Ok(new SubscribeNewsletterResponseDto
+        {
+            Email = email,
+            CouponCode = voucherCode,
+            DiscountAmount = discountValue,
+            MinimumOrderAmount = minOrderAmount,
+            Message = "Đăng ký thành công! Mã voucher 50.000đ đã được gửi tới email của bạn."
+        }, "Đăng ký thành công! Mã voucher 50.000đ đã được gửi tới email của bạn.");
     }
 }

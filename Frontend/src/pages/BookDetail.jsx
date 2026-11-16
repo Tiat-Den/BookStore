@@ -68,19 +68,21 @@ export const BookDetail = () => {
         if (res.success && res.data) {
           const currentBook = res.data;
           setBook(currentBook);
+          setLoading(false); // Hiển thị trang sách ngay lập tức không cần chờ
 
-          // Tải danh sách sách cùng thể loại (loại trừ sách hiện tại)
+          // Tải danh sách sách cùng thể loại ngầm trong nền
           if (currentBook.categories && currentBook.categories.length > 0) {
             const primaryCat = currentBook.categories[0];
-            try {
-              const relRes = await bookService.getBooks({ categoryId: primaryCat.id, pageSize: 6 });
-              if (relRes.success && relRes.data?.items) {
-                const filtered = relRes.data.items.filter(b => b.id !== currentBook.id);
-                setRelatedBooks(filtered.slice(0, 4));
-              }
-            } catch (relErr) {
-              console.error('Lỗi khi tải sách cùng thể loại:', relErr);
-            }
+            bookService.getBooks({ categoryId: primaryCat.id, pageSize: 6 })
+              .then((relRes) => {
+                if (relRes.success && relRes.data?.items) {
+                  const filtered = relRes.data.items.filter(b => b.id !== currentBook.id);
+                  setRelatedBooks(filtered.slice(0, 4));
+                }
+              })
+              .catch((relErr) => {
+                console.error('Lỗi khi tải sách cùng thể loại:', relErr);
+              });
           }
         }
       } catch (err) {

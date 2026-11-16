@@ -325,4 +325,97 @@ public class EmailService : IEmailService
             return false;
         }
     }
+
+    public async Task<bool> SendNewsletterWelcomeEmailAsync(string toEmail, string voucherCode, decimal discountValue, decimal minOrderAmount)
+    {
+        try
+        {
+            var subject = $"🎁 Tặng bạn Voucher {discountValue:N0}đ mừng gia nhập BookStore!";
+
+            var htmlBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Chào mừng bạn đến với BookStore</title>
+</head>
+<body style='margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b;'>
+    <div style='max-width: 580px; margin: 30px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;'>
+        
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 36px 24px; text-align: center; color: #ffffff;'>
+            <div style='font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px;'>
+                📚 BookStore
+            </div>
+            <div style='font-size: 15px; opacity: 0.9; font-weight: 500;'>
+                Bản Tin Sách & Ưu Đãi Độc Quyền
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div style='padding: 32px 28px;'>
+            <h2 style='font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 12px;'>
+                Chào mừng bạn gia nhập cộng đồng yêu sách! 🎉
+            </h2>
+            <p style='font-size: 15px; color: #475569; line-height: 1.6; margin-top: 0; margin-bottom: 24px;'>
+                Cảm ơn bạn đã đăng ký nhận bản tin của <strong>BookStore</strong>. Đúng như đã hứa, BookStore gửi tặng bạn mã giảm giá độc quyền dành cho thành viên mới:
+            </p>
+
+            <!-- Voucher Box -->
+            <div style='background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px dashed #3b82f6; border-radius: 14px; padding: 24px; text-align: center; margin-bottom: 26px;'>
+                <div style='font-size: 13px; font-weight: 700; color: #1e40af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                    MÃ VOUCHER CỦA BẠN
+                </div>
+                <div style='display: inline-block; background-color: #ffffff; color: #1d4ed8; font-size: 26px; font-weight: 800; letter-spacing: 3px; padding: 10px 24px; border-radius: 10px; border: 1px solid #bfdbfe; box-shadow: 0 2px 8px rgba(37,99,235,0.12);'>
+                    {voucherCode}
+                </div>
+                <div style='margin-top: 14px; font-size: 14px; font-weight: 600; color: #1e3a8a;'>
+                    Giảm ngay {discountValue:N0}đ cho đơn hàng từ {minOrderAmount:N0}đ
+                </div>
+                <div style='font-size: 12px; color: #64748b; margin-top: 4px;'>
+                    Hạn sử dụng: 30 ngày kể từ hôm nay • Áp dụng cho mọi đầu sách
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div style='background-color: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 26px; border: 1px solid #e2e8f0;'>
+                <div style='font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 8px;'>
+                    📖 Cách sử dụng mã:
+                </div>
+                <ol style='margin: 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.8;'>
+                    <li>Truy cập <a href='http://localhost:5173' style='color: #2563eb; text-decoration: none; font-weight: 600;'>BookStore</a> và chọn những cuốn sách bạn yêu thích.</li>
+                    <li>Vào trang <strong>Giỏ hàng</strong> hoặc <strong>Thanh toán</strong>.</li>
+                    <li>Nhập mã <strong>{voucherCode}</strong> vào ô <em>Mã giảm giá</em> và bấm <em>Áp dụng</em>.</li>
+                </ol>
+            </div>
+
+            <!-- CTA Button -->
+            <div style='text-align: center; margin-bottom: 24px;'>
+                <a href='http://localhost:5173/books' style='display: inline-block; background-color: #2563eb; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 10px; box-shadow: 0 4px 12px rgba(37,99,235,0.25);'>
+                    Mua Sắm Ngay &rarr;
+                </a>
+            </div>
+
+            <p style='font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 0; text-align: center;'>
+                Mọi thắc mắc vui lòng liên hệ hotline <strong>1900 1234</strong> hoặc email <a href='mailto:datpham14563@gmail.com' style='color: #2563eb; text-decoration: none;'>datpham14563@gmail.com</a>.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style='background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 18px 24px; text-align: center; font-size: 12px; color: #94a3b8;'>
+            © 2026 BookStore Online. Bạn nhận được email này vì đã đăng ký nhận bản tin từ website BookStore.
+        </div>
+    </div>
+</body>
+</html>";
+
+            return await SendEmailInternalAsync(toEmail, subject, htmlBody);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gửi email chào mừng bản tin tới {ToEmail}", toEmail);
+            return false;
+        }
+    }
 }

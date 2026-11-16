@@ -101,3 +101,19 @@ public class CouponValidationResultDto
     public string Code { get; set; } = string.Empty;
     public decimal DiscountAmount { get; set; }
 }
+
+public class SubscribeNewsletterRequestDto
+{
+    [Required(ErrorMessage = "Vui lòng nhập địa chỉ email.")]
+    [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ.")]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class SubscribeNewsletterResponseDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string CouponCode { get; set; } = string.Empty;
+    public decimal DiscountAmount { get; set; }
+    public decimal MinimumOrderAmount { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

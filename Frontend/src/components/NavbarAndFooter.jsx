@@ -10,13 +10,14 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useToast } from '../context/ToastContext';
 import { categoryService } from '../services/catalogAndOrderServices';
+import { newsletterService } from '../services/marketingServices';
 import bookStoreLogo from '../assets/book-store-logo.png';
 import boCongThuongLogo from '../assets/bo-cong-thuong.png';
 import vnpayLogo from '../assets/vnpay-logo.svg';
 import momoLogo from '../assets/momo-logo.png';
 import codLogo from '../assets/cod-logo.png';
 
-const POPULAR_SEARCHES = ['Đắc Nhân Tâm', 'Mắt Biếc', 'Sapiens', 'Tư Duy Nhanh & Chậm', 'Kinh Tế', 'Dế Mèn'];
+const POPULAR_SEARCHES = ['Đắc Nhân Tâm', 'Mắt Biếc', 'Sapiens', 'Tư Duy Nhanh và Chậm', 'Kinh Tế', 'Dế Mèn'];
 
 const ANNOUNCEMENTS = [
   { icon: '🚚', text: 'Miễn phí vận chuyển toàn quốc từ 200.000đ', code: 'FREESHIP' },
@@ -611,14 +612,6 @@ export const Navbar = () => {
               <span>{c.name}</span>
             </Link>
           ))}
-
-          <Link
-            to="/books?sort=discount"
-            className="sub-nav-item"
-            style={{ color: '#ef4444', fontWeight: '700', marginLeft: 'auto' }}
-          >
-            <Flame size={15} /> Flash Sale
-          </Link>
         </div>
       </nav>
     </header>
@@ -627,14 +620,34 @@ export const Navbar = () => {
 
 export const Footer = () => {
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const { showToast } = useToast();
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setTimeout(() => setSubscribed(false), 3000);
-      setEmail('');
+    if (!email || !email.trim()) return;
+
+    setLoading(true);
+    try {
+      const res = await newsletterService.subscribe(email.trim());
+      if (res && res.success) {
+        setSubscribed(true);
+        showToast(
+          res.message || 'Đăng ký nhận tin thành công! Mã voucher 50.000đ đã được gửi tới email của bạn.',
+          'success',
+          { title: 'Tặng Voucher 50.000đ' }
+        );
+        setEmail('');
+        setTimeout(() => setSubscribed(false), 5000);
+      } else {
+        showToast(res?.message || 'Đăng ký không thành công.', 'error', { title: 'Thông báo' });
+      }
+    } catch (err) {
+      const message = err?.message || err?.response?.data?.message || 'Có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.';
+      showToast(message, 'error', { title: 'Thông báo' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -663,15 +676,31 @@ export const Footer = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
               style={{ height: '46px', borderRadius: '10px' }}
             />
             <button
               type="submit"
+              disabled={loading}
               className="btn btn-primary"
-              style={{ height: '46px', padding: '0 22px', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' }}
+              style={{ 
+                height: '46px', 
+                padding: '0 22px', 
+                borderRadius: '10px', 
+                fontWeight: '700', 
+                whiteSpace: 'nowrap',
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
             >
-              {subscribed ? <CheckCircle2 size={18} /> : <Send size={16} />}
-              {subscribed ? 'Đã Đăng Ký!' : 'Đăng Ký'}
+              {loading ? (
+                <span className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+              ) : subscribed ? (
+                <CheckCircle2 size={18} />
+              ) : (
+                <Send size={16} />
+              )}
+              {loading ? 'Đang gửi...' : subscribed ? 'Đã Nhận Voucher!' : 'Đăng Ký'}
             </button>
           </form>
         </div>
@@ -697,7 +726,7 @@ export const Footer = () => {
                 <Phone size={15} color="var(--primary)" /> Hotline đặt hàng: <strong>1900 123 456</strong>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Clock size={15} color="var(--primary)" /> Thời gian phục vụ: 8h00 - 21h00 (Tất cả các ngày)
+                <Clock size={15} color="var(--primary)" /> Thời gian phục vụ: 8h00 - 21h00
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Building size={15} color="var(--primary)" /> Địa chỉ: Bà Rịa - Vũng Tàu, TP. Hồ Chí Minh
@@ -837,7 +866,7 @@ export const Footer = () => {
         {/* Bottom copyright */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: 'var(--text-light)' }}>
           <div>
-            © 2026 <strong>BOOK STORE</strong>. Tất cả quyền được bảo lưu. Giấy phép kinh doanh xuất bản phẩm trực tuyến.
+            © 2026 <strong>BOOK STORE</strong>
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <Link to="/terms" style={{ color: 'inherit' }}>Điều khoản</Link>

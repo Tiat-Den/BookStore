@@ -1,11 +1,21 @@
 using System.Text;
 using BookStore.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 0. Performance: In-Memory Cache & Response Compression
+builder.Services.AddMemoryCache();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
 
 // 1. Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -156,6 +166,7 @@ using (var scope = app.Services.CreateScope())
 
 // 7. HTTP Request Pipeline
 app.UseMiddleware<BookStore.Api.Middlewares.ExceptionMiddleware>();
+app.UseResponseCompression();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

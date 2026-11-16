@@ -111,6 +111,23 @@ public class CouponsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("/api/newsletter/subscribe")]
+    [HttpPost("newsletter/subscribe")]
+    public async Task<ActionResult<ApiResponse<SubscribeNewsletterResponseDto>>> SubscribeNewsletter([FromBody] SubscribeNewsletterRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return BadRequest(ApiResponse<SubscribeNewsletterResponseDto>.Fail("Dữ liệu không hợp lệ.", errors));
+        }
+
+        var result = await _couponService.SubscribeNewsletterAsync(request);
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
     [Authorize(Roles = "ADMIN,EMPLOYEE")]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<CouponDto>>>> GetAllCoupons()

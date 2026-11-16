@@ -31,7 +31,7 @@ export const EmptyState = ({
     ? 'Lưu lại những tựa sách bạn say mê bằng cách nhấn vào biểu tượng trái tim để dễ dàng tìm lại và mua sắm bất cứ khi nào bạn muốn.'
     : isOrders
     ? 'Hàng ngàn cuốn sách hay đang chờ bạn khám phá. Hãy chọn mua cuốn sách yêu thích để chúng tôi phục vụ bạn nhé!'
-    : 'Hàng ngàn cuốn sách hấp dẫn từ Văn học, Kinh tế, Kỹ năng sống đến Thiếu nhi đang chờ bạn đón đọc cùng nhiều voucher freeship!';
+    : 'Hàng ngàn cuốn sách hấp dẫn đang chờ bạn đón đọc cùng nhiều voucher';
 
   const badgeColor = isWishlist ? '#fff1f2' : isOrders ? '#fef3c7' : '#eff6ff';
   const badgeTextColor = isWishlist ? '#e11d48' : isOrders ? '#d97706' : '#2563eb';

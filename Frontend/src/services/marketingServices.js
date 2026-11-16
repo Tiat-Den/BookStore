@@ -138,3 +138,9 @@ export const couponService = {
     return await apiClient.delete(`/coupons/${id}`);
   }
 };
+
+export const newsletterService = {
+  subscribe: async (email) => {
+    return await apiClient.post('/newsletter/subscribe', { email });
+  }
+};

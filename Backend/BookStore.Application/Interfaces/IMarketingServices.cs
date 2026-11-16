@@ -23,4 +23,5 @@ public interface ICouponService
     Task<ApiResponse<CouponDto>> CreateCouponAsync(CreateCouponDto request);
     Task<ApiResponse<bool>> DeleteCouponAsync(Guid couponId);
     Task<ApiResponse<CouponValidationResultDto>> ValidateCouponAsync(ValidateCouponRequestDto request);
+    Task<ApiResponse<SubscribeNewsletterResponseDto>> SubscribeNewsletterAsync(SubscribeNewsletterRequestDto request);
 }

@@ -32,20 +32,36 @@ export const bookService = {
   }
 };
 
+let categoriesCache = null;
+let categoriesCacheTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export const categoryService = {
-  getCategories: async (activeOnly = true) => {
-    return await apiClient.get('/categories', { params: { activeOnly } });
+  getCategories: async (activeOnly = true, forceRefresh = false) => {
+    const now = Date.now();
+    if (!forceRefresh && activeOnly && categoriesCache && (now - categoriesCacheTime < CACHE_TTL_MS)) {
+      return categoriesCache;
+    }
+    const res = await apiClient.get('/categories', { params: { activeOnly } });
+    if (activeOnly && res?.success) {
+      categoriesCache = res;
+      categoriesCacheTime = now;
+    }
+    return res;
   },
 
   createCategory: async (data) => {
+    categoriesCache = null;
     return await apiClient.post('/categories', data);
   },
 
   updateCategory: async (id, data) => {
+    categoriesCache = null;
     return await apiClient.put(`/categories/${id}`, data);
   },
 
   deleteCategory: async (id) => {
+    categoriesCache = null;
     return await apiClient.delete(`/categories/${id}`);
   }
 };

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
@@ -10,22 +10,49 @@ import { ProtectedRoute, ErrorBoundary } from './components/UIComponents';
 import ChatWidget from './components/ChatWidget';
 import BackToTop from './components/BackToTop';
 
+// Critical Customer Routes (Eagerly Loaded)
 import { Home } from './pages/Home';
 import { Books } from './pages/Books';
-import { BookDetail } from './pages/BookDetail';
-import { Cart } from './pages/Cart';
-import { Checkout } from './pages/Checkout';
-import { Orders } from './pages/Orders';
-import { Wishlist } from './pages/Wishlist';
-import { Profile } from './pages/Profile';
-import { TermsOfService, PrivacyPolicy, ShippingPolicy, PaymentGuide } from './pages/Policies';
-import { Login, Register } from './pages/AuthPages';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { AdminDashboard, AdminBooks, AdminCategories, AdminOrders, AdminCoupons } from './pages/admin/AdminPages';
-import { AdminUsers } from './pages/admin/AdminUsers';
-import { AdminChatbot } from './pages/admin/AdminChatbot';
-import { EmployeeDashboard } from './pages/employee/EmployeePages';
-import { NotFound } from './pages/NotFound';
+
+// Lazy Loaded Customer & Support Routes
+const BookDetail = lazy(() => import('./pages/BookDetail').then(m => ({ default: m.BookDetail })));
+const Cart = lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })));
+const Checkout = lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
+const Orders = lazy(() => import('./pages/Orders').then(m => ({ default: m.Orders })));
+const Wishlist = lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
+const Profile = lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
+const TermsOfService = lazy(() => import('./pages/Policies').then(m => ({ default: m.TermsOfService })));
+const PrivacyPolicy = lazy(() => import('./pages/Policies').then(m => ({ default: m.PrivacyPolicy })));
+const ShippingPolicy = lazy(() => import('./pages/Policies').then(m => ({ default: m.ShippingPolicy })));
+const PaymentGuide = lazy(() => import('./pages/Policies').then(m => ({ default: m.PaymentGuide })));
+const Login = lazy(() => import('./pages/AuthPages').then(m => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/AuthPages').then(m => ({ default: m.Register })));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
+
+// Lazy Loaded Admin & Employee Routes (Heavy Bundles)
+const AdminDashboard = lazy(() => import('./pages/admin/AdminPages').then(m => ({ default: m.AdminDashboard })));
+const AdminBooks = lazy(() => import('./pages/admin/AdminPages').then(m => ({ default: m.AdminBooks })));
+const AdminCategories = lazy(() => import('./pages/admin/AdminPages').then(m => ({ default: m.AdminCategories })));
+const AdminOrders = lazy(() => import('./pages/admin/AdminPages').then(m => ({ default: m.AdminOrders })));
+const AdminCoupons = lazy(() => import('./pages/admin/AdminPages').then(m => ({ default: m.AdminCoupons })));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers').then(m => ({ default: m.AdminUsers })));
+const AdminChatbot = lazy(() => import('./pages/admin/AdminChatbot').then(m => ({ default: m.AdminChatbot })));
+const EmployeeDashboard = lazy(() => import('./pages/employee/EmployeePages').then(m => ({ default: m.EmployeeDashboard })));
+
+// Lightweight Loading Fallback for Route Transitions
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div style={{
+      width: '38px',
+      height: '38px',
+      border: '3px solid #e2e8f0',
+      borderTopColor: 'var(--primary)',
+      borderRadius: '50%',
+      animation: 'spin 0.8s linear infinite'
+    }} />
+  </div>
+);
 
 // Tự động cuộn trang lên đầu mỗi khi chuyển route hoặc đổi danh mục / bộ lọc URL
 const ScrollToTop = () => {
@@ -60,8 +87,9 @@ export function App() {
                 
                 <main style={{ flex: 1 }}>
                   <ErrorBoundary>
-                    <Routes>
-                  {/* Customer Routes */}
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        {/* Customer Routes */}
                   <Route path="/" element={<Home />} />
                   <Route path="/books" element={<Books />} />
                   <Route path="/books/:id" element={<BookDetail />} />
@@ -160,7 +188,8 @@ export function App() {
                   {/* 404 Fallback Route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </ErrorBoundary>
+              </Suspense>
+            </ErrorBoundary>
             </main>
 
             <Footer />

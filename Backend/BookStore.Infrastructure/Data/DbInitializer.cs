@@ -479,5 +479,47 @@ public static class DbInitializer
             context.ChatSettings.Add(defaultSetting);
             await context.SaveChangesAsync();
         }
+
+        // 10. Ensure NewsletterSubscribers table & Welcome Coupon
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'NewsletterSubscribers')
+                BEGIN
+                    CREATE TABLE [NewsletterSubscribers] (
+                        [Id] uniqueidentifier NOT NULL,
+                        [Email] nvarchar(150) NOT NULL,
+                        [CouponCode] nvarchar(50) NULL,
+                        [SubscribedAt] datetime2 NOT NULL,
+                        [IsActive] bit NOT NULL,
+                        CONSTRAINT [PK_NewsletterSubscribers] PRIMARY KEY ([Id])
+                    );
+                    CREATE UNIQUE INDEX [IX_NewsletterSubscribers_Email] ON [NewsletterSubscribers] ([Email]);
+                END
+            ");
+        }
+        catch
+        {
+            // Table may already be handled by EF migrations
+        }
+
+        if (!await context.Coupons.AnyAsync(c => c.Code == "WELCOME50K"))
+        {
+            context.Coupons.Add(new Coupon
+            {
+                Id = Guid.NewGuid(),
+                Code = "WELCOME50K",
+                Name = "Voucher chào mừng thành viên mới 50.000đ",
+                Type = "FIXED_AMOUNT",
+                Value = 50000,
+                MinimumOrderAmount = 150000,
+                UsageLimit = 10000,
+                UsedCount = 0,
+                StartAt = DateTime.UtcNow.AddDays(-1),
+                EndAt = DateTime.UtcNow.AddYears(1),
+                IsActive = true
+            });
+            await context.SaveChangesAsync();
+        }
     }
 }

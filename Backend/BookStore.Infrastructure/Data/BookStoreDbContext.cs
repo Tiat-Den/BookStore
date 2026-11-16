@@ -40,6 +40,7 @@ public class BookStoreDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<PolicyDocument> PolicyDocuments => Set<PolicyDocument>();
     public DbSet<ChatSetting> ChatSettings => Set<ChatSetting>();
+    public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -322,6 +323,15 @@ public class BookStoreDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.WelcomeMessage).HasMaxLength(500);
             entity.Property(e => e.SystemNotice).HasMaxLength(500);
+        });
+
+        // NewsletterSubscriber
+        modelBuilder.Entity<NewsletterSubscriber>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.Email).HasMaxLength(150).IsRequired();
+            entity.Property(e => e.CouponCode).HasMaxLength(50);
         });
     }
 }
